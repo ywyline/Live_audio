@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TikTokAudio.Domain/TikTokAudio.Domain.csproj" />
+    <Project Path="src/TikTokAudio.Application/TikTokAudio.Application.csproj" />
+    <Project Path="src/TikTokAudio.Infrastructure/TikTokAudio.Infrastructure.csproj" />
+    <Project Path="src/TikTokAudio.Desktop/TikTokAudio.Desktop.csproj" />
+  </Folder>
+</Solution>
