@@ -6,12 +6,13 @@
 
 ## 2026-09-23 main 整合与远程同步
 
-- 用户已明确授权合并分支、更新 main 并推送远程；本次授权覆盖旧记录中的禁止 commit/push，产品开发仍停在 S05/T040，不启动新切片。
-- 仓库为 E:/Live_audio，整合基线 a2883e7；仅有 main 和一个主工作树，无其他本地分支或远程跟踪分支可合并。接手时 30 个文件已暂存、无未暂存修改；此前“未 stage”的记录已过时。
-- 现有 T020 共享契约、T021 内存夹具与测试、T030/T040 报告及治理记录已复核并暂存。执行 `git commit -m "chore: integrate contracts, test fixtures and verification reports"` 退出 128：Author identity unknown；本地及全局未配置 user.name/user.email，未生成新提交，main HEAD 仍为 a2883e7。仅清理 9 个新增 C# 文件末尾空行，不改变契约或业务行为。
-- 验证：`dotnet test TikTokAudio.slnx -c Debug --no-restore` 退出 0，5 passed / 0 failed；`dotnet build TikTokAudio.slnx -c Debug --no-restore` 退出 0，0 warnings / 0 errors。`git diff --cached --check` 与 `git diff --check` 均退出 0。
-- 推送阻塞：`git remote -v` 无输出，尚无目标远程地址；未创建远程仓库、未执行推送。最小所需输入是 Git 提交姓名、邮箱及目标远程仓库 URL。收到后先提交现有成果，再配置远程、获取并核对远程 main 历史，正常合并/推送，不强推。
-- T020/T021 保持 DONE，T030 保持 BLOCKED，S05/T040 保持 ACTIVE 且真实引擎输入仍缺失；本次测试不代表真实平台、TTS 或音频设备验收。
+- 用户明确授权合并、提交与推送，并提供提交身份和远程地址；已仅在本仓库配置 Git 身份，origin 为 `https://github.com/ywyline/Live_audio.git`。
+- 起点为 main/a2883e7，30 个文件已暂存；本地只有 main 和一个主工作树。`git fetch origin --prune` 退出 0，首次 `git ls-remote --heads origin` 为空；远程没有分支需要合并。
+- 成果提交：`0cc962b69140e09ba1b722bd6e42c9540a81a03f`，包含 T020 共享契约、T021 内存夹具与测试、T030/T040 报告和治理文档；仅清理 9 个新增 C# 文件末尾空行，业务与契约语义不变。
+- `git push -u origin main` 退出 0，创建远程 main 并建立 origin/main 跟踪；`git ls-remote --heads origin main` 确认远程指向上述成果提交。原 Git 身份及远程地址阻塞已解除。
+- 验证沿用同一份源码的本轮结果：`dotnet test TikTokAudio.slnx -c Debug --no-restore` 退出 0（5/5）；`dotnet build TikTokAudio.slnx -c Debug --no-restore` 退出 0（0 警告、0 错误）；暂存与工作区差异检查均退出 0。后续仅更新本同步记录，不重复运行无变化的构建/测试。
+- 本同步记录作为独立文档提交保存，最终 HEAD 以 `git log -1` 为准；提交后推送并核对本地/远程 HEAD 和干净工作区。此前未 stage/commit/push 的旧日期记录仅为历史。
+- 产品任务不变：T020/T021 DONE、T030 BLOCKED、S05/T040 ACTIVE。下一项产品动作仍需补齐 T040 已授权本地越南语引擎、模型/音色版本、许可及运行方式；本轮不开展真实平台或 TTS 操作。
 
 - 本轮只读复核发现现有夹具限制（不在本次 Git 同步中扩展实现）：FakeClock 取消后 pending 项需等推进才清理，取消登记与推进存在资源清理竞态；模拟事件源断开后 channel 已完成，复用重连尚未支持；模拟队列/动作记录无界。5 个现有测试未覆盖这些场景，后续取消、重连和长跑测试前需另行修复/验收，当前提交仅保存阶段成果。
 
