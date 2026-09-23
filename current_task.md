@@ -1,29 +1,38 @@
 # 当前唯一执行切片
 
-文档基线：0.1.0｜更新日期：2026-09-16。
+文档基线：0.1.0｜更新日期：2026-09-23。
+
+## 2026-09-23 main 整合与远程同步
+
+- 用户已明确授权合并分支、更新 main 并推送远程；本次授权覆盖旧记录中的禁止 commit/push，产品开发仍停在 S05/T040，不启动新切片。
+- 仓库为 E:/Live_audio，整合基线 a2883e7；仅有 main 和一个主工作树，无其他本地分支或远程跟踪分支可合并。接手时 30 个文件已暂存、无未暂存修改；此前“未 stage”的记录已过时。
+- 现有 T020 共享契约、T021 内存夹具与测试、T030/T040 报告及治理记录已复核并暂存。执行 `git commit -m "chore: integrate contracts, test fixtures and verification reports"` 退出 128：Author identity unknown；本地及全局未配置 user.name/user.email，未生成新提交，main HEAD 仍为 a2883e7。仅清理 9 个新增 C# 文件末尾空行，不改变契约或业务行为。
+- 验证：`dotnet test TikTokAudio.slnx -c Debug --no-restore` 退出 0，5 passed / 0 failed；`dotnet build TikTokAudio.slnx -c Debug --no-restore` 退出 0，0 warnings / 0 errors。`git diff --cached --check` 与 `git diff --check` 均退出 0。
+- 推送阻塞：`git remote -v` 无输出，尚无目标远程地址；未创建远程仓库、未执行推送。最小所需输入是 Git 提交姓名、邮箱及目标远程仓库 URL。收到后先提交现有成果，再配置远程、获取并核对远程 main 历史，正常合并/推送，不强推。
+- T020/T021 保持 DONE，T030 保持 BLOCKED，S05/T040 保持 ACTIVE 且真实引擎输入仍缺失；本次测试不代表真实平台、TTS 或音频设备验收。
 
 ## 1. 当前指针
 
 | 字段 | 当前值 |
 |---|---|
-| SliceId | S01 |
-| 主任务 | T010：开发环境确认与最小项目骨架 |
-| 状态 | DONE：S01/T010 最终验收通过 |
-| 上一成果 | T000：六份文档基线，已完成 |
+| SliceId | S05 |
+| 主任务 | T040：核对目标硬件、引擎许可证和本地运行条件；验证第一个真实越南语引擎、音色与耗时 |
+| 状态 | ACTIVE：已确认 T000 DONE 且 T040 为当前最小 P0 READY；按授权范围开展本机核对和真实本地引擎验证 |
+| 上一成果 | S04/T030：来源报告已形成但因缺少授权直播间/账号仍为 BLOCKED |
 | 执行负责人 | Codex 主会话（Integrator），单人顺序执行 |
-| 活动工作者 | 无 |
-| 开发授权状态 | 用户已明确授权仅执行 S01/T010 的建项目、还原、构建、窗口启动验证和常规修复；完成后停止 |
-| 实际源码仓库 | `E:\Live_audio`；2026-09-16 在原六文档目录初始化 Git，保留全部已有文件 |
-| 当前分支 / HEAD / BaseCommit | `main` / 尚无提交 / 无基线提交（新仓库） |
-| 外部平台或模型操作 | 本切片不需要 |
+| 活动工作者 | 无；共享契约由 Integrator 统一维护 |
+| 开发授权状态 | 用户已明确授权继续开发；本切片仅执行 T040 硬件/许可/本地引擎核对和验证，不执行 T041/T042/T044 或平台操作 |
+| 实际源码仓库 | `E:\Live_audio`；保留既有工程与用户修改 |
+| 当前分支 / HEAD / BaseCommit | `main` / `a2883e7` / `a2883e7` |
+| 外部平台或模型操作 | 仅完成本机硬件、系统音色和本地工具只读核对；未下载模型、未访问凭据/Token、未执行云端或直播副作用 |
 
-本轮已于环境核对后登记 ACTIVE；因实际缺少 SDK，完成独立文件准备后记录为 BLOCKED。解除 SDK 阻塞后沿用 S01 范围恢复 ACTIVE。已有明确开发授权后，不为每个可逆的常规操作重复询问。
+本轮于 2026-09-18（Asia/Shanghai）启动。按依赖、优先级和 READY 顺序，T030 仍 BLOCKED，T040 为首个可执行切片，现登记 S05/T040 ACTIVE。前置 T000 已 DONE；T040 直接核对本机硬件、引擎许可和本地运行条件，若缺少真实引擎授权则记录阻塞，不伪造试听或耗时证据。
 
 ## 2. 唯一目标
 
-在选定 Windows 项目目录建立可从 VS Code 构建的最小 C#/.NET 10 WPF 解决方案，固定工具链边界并验证启动。只完成基础工程，不实现 TikTok、TTS、播放调度或商品功能。
+核对目标 Windows 机器的音频/运行条件和明确许可的第一个本地越南语 TTS 引擎，记录引擎版本、音色、试听样例、P50/P95 耗时及限制。仅执行 T040，不实现 T041 loopback 适配器、不切换多引擎、不执行平台操作。
 
-前置：T000 DONE；已有六文档；执行时能确定用户希望作为源码根目录的位置。若用户已在目标 VS Code 项目内发起开发，以实际打开的目录为准，不误用原始附件目录或文档打包目录。
+前置：T010 DONE（其前置 T000 已完成）；已有六文档和最小工程；实际源码根为 `E:\Live_audio`。
 
 ## 3. 允许改动
 
@@ -31,78 +40,75 @@
 
 | 范围 | 允许内容 |
 |---|---|
-| `global.json`、`Directory.Build.props`、必要的 `Directory.Packages.props` | 实测 SDK 固定、nullable、通用构建设置；只加入本切片需要的依赖 |
-| `TikTokAudio.slnx`、`.gitignore` | 最小解决方案和生成文件/本地数据忽略规则 |
-| `src/TikTokAudio.Domain/TikTokAudio.Domain.csproj` | 领域项目，不引入第三方运行库 |
-| `src/TikTokAudio.Application/TikTokAudio.Application.csproj` | 应用项目，仅配置正确依赖方向 |
-| `src/TikTokAudio.Infrastructure/TikTokAudio.Infrastructure.csproj` | 基础设施项目与项目引用，不预建具体服务 |
-| `src/TikTokAudio.Desktop/TikTokAudio.Desktop.csproj`、`App.xaml`、`App.xaml.cs`、`MainWindow.xaml`、`MainWindow.xaml.cs` | 能启动的最小 WPF 窗口与组合入口；不得堆出未实现功能按钮 |
-| `.vscode/launch.json`、`.vscode/tasks.json` | 确有需要时添加构建/调试配置；不得覆盖已有用户配置 |
-| 六份治理文件 | 负责人仅更新实际状态和环境信息；不变更业务需求 |
+| `docs/` 或项目根下的 T040 验证报告文件 | 硬件、引擎许可、本地运行条件、试听样例和耗时证据；不得复制凭据、模型私有路径或原始用户信息 |
+| `current_task.md`、`tasks.md`、`handoff.md`、`changelog.md` | 负责人登记 ACTIVE/DONE 或 BLOCKED、范围、验证证据和交接；不改产品需求 |
 
-若无既有代码，可移除模板自动生成且确认无用户内容的无用 Class1 文件。Git 尚未初始化时，在实际开发指令涵盖建项目的范围内初始化；已有仓库则保留分支和改动，先记录现场。不得创建远程仓库或自动推送。
+禁止修改公共包版本、Desktop UI、Infrastructure 实现、真实平台适配器、数据库迁移及 T021 范围外功能；本轮按用户明确授权提交 main；远程推送须先取得目标仓库 URL，不创建远程仓库。
 
 ## 4. 禁止改动与范围停止点
 
-- 不写事件采集器，不访问真实直播间，不读取旧软件的 Cookie、浏览器配置或授权文件。
+- 不写事件采集器，不执行真实直播发言/商品动作，不读取旧软件的 Cookie、浏览器配置或授权文件。
 - 不下载/安装/启动 TTS 模型，不接云端服务，不写业务播放/弹窗逻辑。
 - 不添加 NAudio、SQLite、FFmpeg 等尚未使用的实现依赖；这里只确定后续技术基线。
 - 不修改 OBS、不做视频、不做收费或授权码体系。
-- 不提前执行 T020/T030/T040，不创建工作者会话，不生成空的全功能目录树。
+- 不提前执行 T031/T032/T033/T034/T041/T042/T044 或任何后续任务，不生成空的全功能目录树。
 - 不清理文档交付目录之外的旧资料，不覆盖现有业务文件，不以重置仓库解决问题。
 
 若 SDK 缺失、系统不支持或已有源码与计划冲突，记录真实发现和最小解决方式。可完成独立只读检查；受影响动作暂停，不伪造 build 结果，也不擅自更换技术栈。
 
 ## 5. 顺序执行与完成条件
 
-以下为验收步骤；本次已执行与未执行结果分别见第 6 节，不能把步骤列表当作通过证据：
+以下为 T040 验收步骤；本次已执行与未执行结果分别见第 6 节，不能把步骤列表当作通过证据：
 
 1. 按 agents 恢复顺序读文档，确认真实目录及 Git 状态。存在仓库时检查 `git status --short`、`git branch --show-current`、`git rev-parse HEAD`、`git worktree list`；无仓库如实登记。
-2. 检查 `dotnet --info`、`dotnet --list-sdks` 和 Windows 版本，记录实际安装结果；确定兼容的 .NET 10 SDK 补丁版本及 Windows 目标。
-3. 检查已有项目和配置；只建立缺失的最小工程。Domain/Application 使用纯 .NET 目标，Desktop 使用 Windows/WPF 目标；Windows 音频基础设施的目标框架由项目实际引用决定。
-4. 固定 SDK，配置项目引用及忽略规则；只安装实际必要且已授权的工具/依赖。
-5. 在项目根目录执行 `dotnet restore TikTokAudio.slnx` 和 `dotnet build TikTokAudio.slnx -c Debug --no-restore`，记录精确命令及退出码。
-6. 用 `dotnet run --project src/TikTokAudio.Desktop/TikTokAudio.Desktop.csproj --no-build` 或 VS Code 调试验证窗口可开关、没有启动异常。若环境无法显示窗口，构建证据保留，但图形启动验收记为未完成。
-7. 核对 diff 和生成文件未误入源码，更新 tasks、handoff、changelog；只有完成下列条件才将 T010 与 S01 标为 DONE。
+2. 检查 `dotnet --info`、`dotnet --list-sdks` 和 Git 状态，记录实际工具链与基线。
+3. 只读核对目标硬件、音频端点、系统语音和已存在的本地 TTS 工具，不下载模型或访问凭据。
+4. 对照 REQ-TTS-001 和 AC-06，记录引擎、模型、音色、语言、版本、许可、试听样例和 P50/P95 条件。
+5. 形成 T040 硬件/引擎报告；若缺少真实越南语引擎或许可则登记阻塞，不伪造试听和耗时。
+6. 核对 diff 和生成文件未越界，更新 tasks、handoff、changelog；不得进入 T041/T042/T044。
 
 完成条件：
 
-- 实际项目根、操作系统、SDK、Git 状态均已记录；没有虚构版本或提交。
-- 最小工程引用方向符合 agents，nullable 生效，VS Code 可构建。
-- restore/build 成功，WPF 窗口实际启动与关闭经过验证。
-- 没有凭证、真实评论或大音频入仓库，没有业务功能越界。
-- 本阶段不为模板脚手架写“恒为真”测试；业务测试夹具留给 T021。若用户项目已有测试，只运行受本次改动影响的必要检查。
-- 状态、差异、验证与下一切片建议已写入交接。完成本切片即停止本轮实施；后续按用户已有持续开发授权和任务选择规则推进，不把当前范围默默变为全部 V1。
+- 目标硬件、音频端点、本地运行条件和报告字段完整；没有虚构引擎、许可、音色或性能结果。
+- 报告明确区分硬件事实、系统语音事实、真实 TTS 证据和未知项。
+- 缺少已授权的真实越南语引擎、模型或许可时登记阻塞，记录最小输入，不下载或安装替代品。
+- T041/T042/T044 及后续适配器仍未开始。
 
 ## 6. 分配与证据
 
 | Owner | Task | 状态 | 实际工作区 | Branch / BaseCommit | AllowedPaths |
 |---|---|---|---|---|---|
-| Codex 主会话（Integrator） | T010 | DONE | `E:\Live_audio` | `main` / 无基线提交 | `E:\Live_audio` 下第 3 节精确文件；无工作者 |
+| Codex 主会话（Integrator） | T040 | ACTIVE | `E:\Live_audio` | `main` / `a2883e7` | `docs/T040-engine-report.md`、本文件及 tasks/handoff/changelog；无工作者 |
 
-开始时间：2026-09-16 00:48（Asia/Shanghai）。已按顺序读取六文档，确认初始目录仅含六文档，无源码、无 Git 仓库、无重叠改动。`git init -b main` 成功（退出码 0）；根目录为 `E:/Live_audio`，仅一个主工作树，HEAD 尚不存在。
+开始时间：2026-09-18（Asia/Shanghai）。已按顺序读取治理文档，确认实际根目录 `E:/Live_audio`，当前为 `main`、HEAD `a2883e7`、仅一个主工作树；保留 T020 和 T021 未提交成果，本切片新增 T040 报告并仅修改治理文档。
 
 环境：Windows 10 专业版 x64，10.0.19045；PowerShell 5.1.19041.6456；Git 2.53.0.windows.2；VS Code 1.137.0 x64。刷新系统/用户 PATH 后，`C:\Program Files\dotnet\dotnet.exe` 可用。`dotnet --info` 成功识别 SDK 10.0.401、Host 10.0.12、RID win-x64；`dotnet --list-sdks` 输出 `10.0.401 [C:\Program Files\dotnet\sdk]`，此前 SDK 阻塞已解除。
 
-已创建：`global.json`（SDK 10.0.401，rollForward=disable）、`TikTokAudio.slnx`、四层 `.csproj`、Desktop 的 App/MainWindow XAML 与代码、`Directory.Build.props`、`.gitignore`、`.vscode/tasks.json`。未创建具体服务或测试占位。Domain/Application/Infrastructure 为 `net10.0`，Desktop 为 `net10.0-windows` + WPF + x64；Infrastructure 尚无 Windows API，暂不加 Windows TFM。文案集中在 App 资源中，无业务按钮。
+T040 当前范围：核对本机硬件和已授权的第一个真实本地越南语引擎；不修改 T020 Domain/Application 契约，不创建 T041 适配器、数据库迁移或 UI 功能。
 
-已验证：XML/JSON 可解析；四层项目引用符合 agents 3.2 且引用路径存在；无 PackageReference；nullable 配置为 enable。静态核对脚本最终退出码 0；`git diff --check` 退出码 0（新仓库文件未跟踪，此命令不代替源码构建）。
+兼容规则：契约主版本 `1.0` 与状态模式版本 `1.0`；同一主版本允许新增可选数据而不改变既有语义，主版本变化需由 Integrator 统一更新调用者和迁移说明。`ProductEpoch` 使旧场控回调失效，`EngineRevision` 隔离旧 TTS 结果，`PlanRevision` 隔离旧基础计划；外部结果为 Unknown 时不得伪造成功或盲目重试。取消是正常结果，调用方必须在副作用前再次核对会话/目标/修订号。
 
 本轮实际尝试的验收命令（工作目录均为 `E:\Live_audio`）：
 
 | 命令 | 结果 |
 |---|---|
-| `dotnet restore TikTokAudio.slnx` | 退出码 0；四项目全部还原成功 |
+| `dotnet restore TikTokAudio.slnx` | 退出码 0；解决方案项目均为最新 |
+| `dotnet test tests/TikTokAudio.Application.Tests/TikTokAudio.Application.Tests.csproj -c Debug --no-restore` | 退出码 0；5 passed，0 failed（相关回归） |
+| `dotnet test TikTokAudio.slnx -c Debug --no-restore` | 退出码 0；5 passed，0 failed（相关回归） |
 | `dotnet build TikTokAudio.slnx -c Debug --no-restore` | 退出码 0；0 Errors，0 Warnings |
-| 从 `.vscode/tasks.json` 读取并执行 build task：`dotnet build TikTokAudio.slnx -c Debug` | 退出码 0；0 Errors，0 Warnings |
-| `dotnet run --project src/TikTokAudio.Desktop/TikTokAudio.Desktop.csproj --no-build` | dotnet run 宿主与 WPF 进程均启动；主窗口句柄 `0x80468`，标题“TikTok 直播音频工具”，Responding=True；优雅关闭后两进程均退出 |
-| PowerShell XML 检查 solution 四项目、全部引用/TFM、Desktop WinExe/UseWPF/x64、StartupUri 及 MainWindow 文件 | 退出码 0，仅静态结构通过 |
+| `git diff --check` | 退出码 0；仅有 Git 的 LF/CRLF 提示，无 whitespace 错误 |
 
-此前失败根因是终端 PATH 未刷新；本轮刷新系统/用户环境变量后恢复验证并固定 SDK。所有完成条件已满足，未发生代码侧编译错误或范围外修改。
+| 硬件/音频端点/SAPI/本地工具只读核对 | 已完成；发现 Realtek 端点、CPU/GPU，但仅有 `zh-CN`/`en-US` SAPI 音色，无越南语引擎 |
 
-完成结果：SDK、restore、solution build、VS Code build task、WPF 实际启动/关闭和结构引用验收全部通过。S01/T010 标记 DONE；T020 仍为 TODO，本轮停止，不自动进入。
+本轮未执行真实越南语 TTS 合成、试听、P50/P95、模型安装或本地音频播放；原因是缺少已授权引擎/模型/许可。未读取 Cookie、Token 或浏览器配置，没有云端或平台副作用。
 
-已登记开始时间、环境结果、变更文件、验证命令/退出码、失败与修复及停止原因；较长历史转入 handoff 或 changelog。本切片已完成并停止。
+本轮回归验证：应用测试 5 passed / 0 failed，解决方案测试 5 passed / 0 failed；`dotnet build TikTokAudio.slnx -c Debug --no-restore` 退出码 0，0 warnings / 0 errors。T040 的真实引擎验收条件仍未满足，因此保持 ACTIVE。
+
+本次复核：枚举 64 位、32 位和 OneCore SAPI 注册表以及当前用户语音根，仍仅发现 `en-US` 与中文音色，没有 `vi-VN`；`Get-Command -All` 和卸载注册表均未发现 Piper、Coqui、eSpeak、Festival、Flite、RHVoice 或其他本地 TTS 产品；Python 3.12 已安装但指定 TTS 包均不存在。未下载、安装、启动引擎或服务，未调用合成、访问网络或读取凭据。详细结果见 `docs/T040-engine-report.md`。
+
+当前结果：T040 已形成 `docs/T040-engine-report.md`，完成目标机器硬件、音频端点、系统音色和本地工具只读核对；因缺少真实越南语引擎/模型/许可，S05/T040 保持 ACTIVE 并记录最小解除条件；T020/T021 原有未提交成果保持存在。
+
+已登记开始时间、环境结果、变更文件、验证命令/退出码、阻塞事实和停止原因；下一步需补齐 T040 最小引擎输入后复验，本轮不进入 T041/T042/T044。
 
 ## 7. 后续切片维护模板
 
@@ -121,3 +127,9 @@ SliceId / 主任务 / 子任务：
 当前证据 / 阻塞 / 下一条动作：
 本轮停止点：
 ```
+
+## 2026-09-19 verification update
+
+- Read-only recheck confirmed SDK 10.0.401, Windows 10 x64 19045, and the existing Realtek audio endpoints; no `vi-VN` voice, local Vietnamese engine, model/license, or loopback service was found.
+- Dedicated tests and solution tests each exited 0 with 5 passed / 0 failed. `dotnet build TikTokAudio.slnx -c Debug --no-restore` exited 0 with 0 warnings / 0 errors; `git diff --check` exited 0.
+- No synthesis, listening, P50/P95 measurement, model installation, network TTS, credential access, or platform side effect was performed. T040 remains ACTIVE; the stop point is still waiting for an explicitly authorized local engine and model/voice version, license, and run method.

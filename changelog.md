@@ -1,10 +1,57 @@
 # 可集成成果与版本记录
 
-文档基线：0.1.0｜记录日期：2026-09-16。
+文档基线：0.1.0｜记录日期：2026-09-18。
 
 本文件只记录已经形成可集成成果的开发/文档变更。进行中过程、失败尝试和待整合工作者成果放在 handoff；每轮实施都要更新交接，但没有成果时不能制造一条“已完成”历史。
 
 当前版本 0.1.0 是文档基线版本，不是可运行应用版本。后续条目区分“文档版本”和“应用版本”；两者不必同步增长。新记录置于最上方，保留旧记录，不改写历史结果。
+
+## 2026-09-23 — 现有成果回归验证与格式检查通过
+
+- 关联成果：T020/S02、T021/S03 已验收代码，T030/S04 与 T040/S05 现有验证报告；当前产品切片仍为 S05/T040 ACTIVE。
+- 按用户授权，复核原暂存的 30 个文件，基线 main/a2883e7；没有其他本地分支需要合并。清理 9 个新增 C# 文件末尾空行，业务实现和契约语义不变。
+- 验证：`dotnet test TikTokAudio.slnx -c Debug --no-restore` 退出 0（5/5）；`dotnet build TikTokAudio.slnx -c Debug --no-restore` 退出 0（0 警告、0 错误）。
+- 更新 current_task/tasks/handoff 的本轮授权与同步记录；旧日期的未提交记录作为历史保留。暂存差异检查通过，形成已验证文件成果，尚无新 Git 提交。
+- 提交因缺少 user.name/user.email 退出 128；远程亦未配置，尚未推送。下一项同步动作是取得提交姓名、邮箱和目标仓库 URL 后提交、核对远程历史并正常推送。未进行真实平台、TTS 或音频设备验证，不改变 T030 BLOCKED 或 T040 ACTIVE 状态。
+
+## 2026-09-18 — T040 / S05 本地引擎条件核对记录（阻塞）
+
+- 关联任务/切片：T040 / S05，ACTIVE；整合负责人：Codex 主会话；基线 `a2883e7`；无 commit/push（按用户要求保留工作区改动）。
+- 交付物：新增 `docs/T040-engine-report.md`，记录目标机器硬件、音频端点、系统语音、已存在的本地工具和 T040 的最小解除条件。
+- 只读证据：Acer Nitro AN515-54；Intel i7-9750H，6 核/12 线程；GTX 1660 Ti；Realtek 播放/录音端点状态 OK；Windows SAPI 仅有 `zh-CN` Huihui 与 `en-US` Zira 音色。
+- 阻塞：未发现越南语音色、Piper/Coqui/eSpeak/Python TTS 包、本地 TTS 服务或可核对的引擎/模型许可证；未生成音频、试听或 P50/P95，保持 ACTIVE，不提前进入 T041。
+- 限制：未下载模型、安装软件、访问凭据或调用云端 TTS；硬件核对不构成越南语引擎可用证据。
+- 回归验证：应用测试 5 passed / 0 failed，解决方案测试 5 passed / 0 failed；`dotnet build TikTokAudio.slnx -c Debug --no-restore` 为 0 warnings / 0 errors；`git diff --check` 退出 0（仅 LF/CRLF 提示）。这些结果不替代真实引擎试听和 P50/P95。
+- 下一动作：提供已授权的本地越南语引擎及模型/音色版本、许可证和运行方式后复验 T040；本轮停止。
+
+## 2026-09-18 — T030 / S04 来源核对报告形成，等待授权条件
+
+- 关联任务/切片：T030 / S04，BLOCKED；整合负责人：Codex 主会话；基线 `a2883e7`；无 commit/push（按用户要求保留工作区改动）。
+- 交付物：新增 `docs/T030-source-report.md`，比较 TikTok 直播网页入口与 LIVE Studio PC 入口，并记录来源选择、操作入口、验证方法、限制和解除阻塞所需的最小输入。
+- 验证：公开入口 `https://www.tiktok.com/live` 与 `https://www.tiktok.com/studio/download` 均返回 HTTP 200；本机未发现 LIVE Studio 命令、相关环境变量或常见安装目录；未读取 Cookie、Token 或浏览器配置，也未执行直播评论、商品或文字操作。
+- 阻塞：缺少获授权的测试直播间/账号、非敏感地区范围及客户端/网页版本，尚未取得四类事件、稳定 ID、房间状态、商品展示确认或文字发送能力的真实平台证据；不进入 T031/T032。
+- 限制：本条只记录来源报告和安全只读核对，不代表 TikTok 已接通，不实现真实适配器或平台副作用。
+- 下一切片：补齐 T030 最小授权输入后复验；若继续缺少平台授权，则由后续会话单独评估 T040 的条件，本轮停止。
+
+## 2026-09-18 — T021 / S03 模拟测试夹具与自动化测试验收完成
+
+- 关联任务/切片：T021 / S03，DONE；整合负责人：Codex 主会话；基线 `a2883e7`；无 commit/push（按用户要求保留工作区改动）。
+- 测试基础设施：新增 `SimulatedLiveEventSource`、`SimulatedLiveRoomController`、`FakeClock` 和 `SeededRandomSource`，全部使用内存状态；事件源支持主动注入并保持顺序，场控记录商品/文字动作，时钟由显式推进控制，随机序列由 seed 决定。
+- 测试项目：新增 `tests/TikTokAudio.Application.Tests/` 并纳入 `TikTokAudio.slnx`；5 个 T021 专属测试覆盖事件注入顺序、场控行为记录、时间推进、随机可复现/分歧及无外部连接。
+- 验证：`dotnet restore TikTokAudio.slnx`、专属 `dotnet test`、`dotnet test TikTokAudio.slnx -c Debug --no-restore`、`dotnet build TikTokAudio.slnx -c Debug --no-restore` 和 `git diff --check` 均退出 0；两次测试均为 5 passed / 0 failed，build 为 0 Errors / 0 Warnings。
+- 限制：未连接真实 TikTok、账号、Token、网络、TTS 或音频设备；未实现 T022 或其他后续业务功能。
+- 下一切片：T030 或 T040，待后续授权选择；本轮停止。
+
+## 2026-09-17 — T020 / S02 共享契约冻结并验收完成
+
+- 关联任务/切片：T020 / S02，DONE；整合负责人：Codex 主会话；基线 `a2883e7`；无 commit/push（按用户要求保留工作区改动）。
+- 领域契约：新增 `ContractVersion`/`StateSchemaVersion`、`PlanRevision`、`EngineRevision`、`ProductEpoch`，规范事件、会话、播放检查点、音频资产、TTS、商品目标、去重/预留/缓存/动作账本模型及状态/结果枚举。
+- 应用端口：冻结 `ILiveEventSource`、`ILiveRoomController`、`ITtsProvider`、`IAudioOutput`、`IPlaybackPlanner`、`IClock`、`IRandomSource`、`IStateStore`；所有外部异步动作带 `CancellationToken`，TTS 明确返回 `TtsSynthesisOutcome`。
+- 兼容语义：契约和状态模式当前为 `1.0`；主版本变更需 Integrator 统一更新调用者/迁移。`ProductEpoch`、`EngineRevision`、`PlanRevision` 隔离过期副作用；Unknown/Cancelled/Unsupported 不等同成功，取消为正常结果。
+- 影响文件：`src/TikTokAudio.Domain/`、`src/TikTokAudio.Application/Contracts/` 及 `current_task.md`、`tasks.md`、`handoff.md`、`changelog.md`。
+- 验证：`dotnet restore TikTokAudio.slnx` 退出 0；`dotnet build TikTokAudio.slnx -c Debug --no-restore` 退出 0（0 Errors / 0 Warnings）；`dotnet test TikTokAudio.slnx --no-restore` 退出 0（当前无测试项目）；契约静态核对与 `git diff --check` 退出 0。
+- 限制：未连接真实 TikTok、TTS、音频设备；未实现 T021 模拟夹具、真实适配器、播放调度、数据库或 UI 功能。
+- 下一任务：T021，建立模拟事件源、模拟场控、可控时钟和确定性随机夹具；本轮不提前执行。
 
 ## 2026-09-16 — T010 / S01 最小工程最终验收完成
 
@@ -86,3 +133,7 @@
 ```
 
 工作者提交但未整合的代码先登记 REVIEW 和 handoff。负责人验证并整合后才记录为 DONE；失败或中断的实现继续保留在当前切片，不通过变更日志掩盖缺口。
+
+## 2026-09-19 | S05/T040 verification update
+
+T040 remains ACTIVE. A read-only recheck confirmed SDK 10.0.401, the target Windows environment, and the existing audio endpoints. Dedicated and solution tests each passed 5/5; the solution build completed with 0 warnings and 0 errors. No authorized Vietnamese local engine, model/voice, license, synthesis sample, listening result, or P50/P95 evidence is available, so the task cannot be marked DONE. No model was downloaded, no service or network TTS was called, and no platform side effect occurred. The next allowed action is to supply the minimum authorized engine input documented in `docs/T040-engine-report.md`.

@@ -1,8 +1,17 @@
 # 项目地图：任务、依赖与并行计划
 
-文档基线：0.1.0｜更新日期：2026-09-16｜当前唯一切片：S01 / T010｜切片状态：DONE。
+文档基线：0.1.0｜更新日期：2026-09-23｜当前唯一切片：S05 / T040｜切片状态：ACTIVE。
 
-这里记录全部计划，不授权 AI 一次性实现整张地图。只有 `current_task.md` 明确选中的切片可以执行。T000 文档基线与 T010 最小工程已完成；其他任务无实现成果。READY 表示依赖已满足、可以安排，不表示已经分配或外部测试条件已具备。
+这里记录全部计划，不授权 AI 一次性实现整张地图。只有 `current_task.md` 明确选中的切片可以执行。T000 文档基线、T010 最小工程、T020 共享契约与 T021 测试夹具已完成；后续任务未执行。READY 表示依赖已满足、可以安排，不表示已经分配或外部测试条件已具备。
+
+## 2026-09-23 main 整合与远程同步
+
+- 用户已明确授权合并分支、更新 main 并推送远程；本次授权覆盖旧记录中的禁止 commit/push，产品开发仍停在 S05/T040，不启动新切片。
+- 仓库为 E:/Live_audio，整合基线 a2883e7；仅有 main 和一个主工作树，无其他本地分支或远程跟踪分支可合并。接手时 30 个文件已暂存、无未暂存修改；此前“未 stage”的记录已过时。
+- 现有 T020 共享契约、T021 内存夹具与测试、T030/T040 报告及治理记录已复核并暂存。执行 `git commit -m "chore: integrate contracts, test fixtures and verification reports"` 退出 128：Author identity unknown；本地及全局未配置 user.name/user.email，未生成新提交，main HEAD 仍为 a2883e7。仅清理 9 个新增 C# 文件末尾空行，不改变契约或业务行为。
+- 验证：`dotnet test TikTokAudio.slnx -c Debug --no-restore` 退出 0，5 passed / 0 failed；`dotnet build TikTokAudio.slnx -c Debug --no-restore` 退出 0，0 warnings / 0 errors。`git diff --cached --check` 与 `git diff --check` 均退出 0。
+- 推送阻塞：`git remote -v` 无输出，尚无目标远程地址；未创建远程仓库、未执行推送。最小所需输入是 Git 提交姓名、邮箱及目标远程仓库 URL。收到后先提交现有成果，再配置远程、获取并核对远程 main 历史，正常合并/推送，不强推。
+- T020/T021 保持 DONE，T030 保持 BLOCKED，S05/T040 保持 ACTIVE 且真实引擎输入仍缺失；本次测试不代表真实平台、TTS 或音频设备验收。
 
 ## 1. 状态与完成门槛
 
@@ -44,14 +53,14 @@ V1 Windows TikTok 直播音频工具
 |---|---|---|---|---|---|
 | T000 | 建立六文档基线；校验交叉引用并生成文档包 | 无 | P0 | DONE | 六文件齐全；见 changelog 0.1.0 |
 | T010 | 检查目标机器、确定项目根目录、建立最小 .NET/WPF 解决方案及构建配置 | T000 | P0 | DONE | Owner：Codex 主会话（Integrator）；`E:\Live_audio`；SDK 10.0.401 x64、restore/build/run、VS Code build task 和 WPF 窗口验收通过；详见 current_task 第 6 节、handoff 第 1 节 |
-| T020 | 冻结共享接口、结果类型、状态模型、时钟、版本号和取消语义；记录兼容规则 | T010 | P0 | TODO | agents 3.3；业务不变量均可表达 |
-| T021 | 建立模拟事件源、模拟场控、可控时钟和确定性随机测试夹具，隔离真实外部操作 | T020 | P0 | TODO | 无真实账号也能推进时间、事件和超时；真实网络默认关闭 |
+| T020 | 冻结共享接口、结果类型、状态模型、时钟、版本号和取消语义；记录兼容规则 | T010 | P0 | DONE | Owner：Codex 主会话（Integrator）；Domain/Application 契约已编译；状态仓储覆盖规则、计划、会话、去重、缓存元数据和动作账本；兼容规则、ProductEpoch/EngineRevision/PlanRevision 和取消语义见 current_task/handoff |
+| T021 | 建立模拟事件源、模拟场控、可控时钟和确定性随机测试夹具，隔离真实外部操作 | T020 | P0 | DONE | Owner：Codex 主会话（Integrator）；四类内存夹具已实现，事件注入顺序、场控行为、时间推进和 seed 复现均有专属测试；专属测试、解决方案测试和 build 通过 |
 
 ### 3.2 平台验证与事件接入
 
 | ID | 任务 / 必须形成的成果 | 前置 | 优先级 | 状态 | 验收依据 |
 |---|---|---|---|---|---|
-| T030 | 比较授权条件下的 PC 工具/网页来源，选择首个来源；形成来源、限制和操作入口报告 | T000 | P0 | READY | REQ-SRC-001/002；不能用库名或演示视频当实测 |
+| T030 | 比较授权条件下的 PC 工具/网页来源，选择首个来源；形成来源、限制和操作入口报告 | T000 | P0 | BLOCKED | 报告：`docs/T030-source-report.md`；缺少授权直播间/测试账号与客户端范围，公开入口核对不足以完成 REQ-SRC-001/002 |
 | T031 | 验证四类事件、稳定 UserId/EventId、房间状态、缺失范围和重放行为 | T030 | P0 | TODO | AC-13 事件部分；明确哪些只能部分获取 |
 | T032 | 验证商品 ID、展示确认、30 秒消失及重复展示、发文字权限和结果查询 | T030 | P0 | TODO | AC-13 场控部分；读取和写入能力分别结论 |
 | T033 | 按冻结契约实现一个真实事件适配器、能力报告和规范事件转换 | T020, T031 | P0 | TODO | REQ-SRC-001/002；去标识化事件样本可重放 |
@@ -63,7 +72,7 @@ T030–T032 的报告必须列出日期、账号/地区/客户端版本的非敏
 
 | ID | 任务 / 必须形成的成果 | 前置 | 优先级 | 状态 | 验收依据 |
 |---|---|---|---|---|---|
-| T040 | 核对目标硬件、引擎许可证和本地运行条件；验证第一个真实越南语引擎、音色与耗时 | T000 | P0 | READY | AC-06 首引擎部分；列出试听样例、版本和 P50/P95 |
+| T040 | 核对目标硬件、引擎许可证和本地运行条件；验证第一个真实越南语引擎、音色与耗时 | T000 | P0 | ACTIVE | 已完成硬件/系统条件只读核对；64 位、32 位和 OneCore SAPI 均未发现 `vi-VN`，常见离线 TTS、已登记 TTS 产品和指定 Python 包均不存在；相关测试与 build 通过，但缺少已授权真实越南语引擎、模型/音色版本、许可证和运行方式，尚不能提供试听/P50/P95；AC-06 首引擎部分保持阻塞 |
 | T041 | 首个本地 loopback HTTP 引擎适配器：健康、音色、合成、取消、错误 | T020, T040 | P0 | TODO | REQ-TTS-001；仅本机请求，失败不转云端 |
 | T042 | UTF-8 TXT 分段、标记边界、音频缓存、预生成与取消；失败缓存不命中 | T021, T041 | P0 | TODO | REQ-TTS-002/003/004；AC-06/09 相关部分 |
 | T043 | 多引擎配置与切换，EngineRevision 隔离旧结果；当前音频播放完毕再换 | T042 | P0 | TODO | REQ-TTS-001/003；切换期间没有旧任务污染 |
@@ -178,8 +187,12 @@ T040/T044 若缺少硬件、模型或授权，记录所需最小输入；不得�
 
 ## 6. 当前状态与选择规则
 
-- 已完成：T000 文档基线。
-- 唯一当前切片：S01，主任务 T010，DONE，Owner：Codex 主会话（Integrator），实际源码根 `E:\Live_audio`，无活动工作者。
-- 另有 T030、T040 可被未来切片选择，但本轮不执行，不能越过 S01 自行启动。
+- 已完成：T000 文档基线、T010 最小工程、T020 共享契约冻结。
+- 唯一当前切片：S05，主任务 T040，ACTIVE，Owner：Codex 主会话（Integrator），实际源码根 `E:\Live_audio`，无活动工作者。
+- T030 已完成公开入口与本机环境只读核对并形成报告，仍因缺少授权直播间/测试账号与客户端范围而 BLOCKED。T040 已登记 ACTIVE，当前仅核对本机硬件、引擎许可和本地运行条件，不提前实现 T041。
 - T010 已刷新 PATH 并确认官方 .NET SDK 10.0.401 x64，实际完成 restore/build/run 与 VS Code build task；0 错误、0 警告，WPF 窗口句柄/标题/响应状态和优雅关闭均通过，四层引用保持正确。平台及引擎未验证，尚未尝试其对应任务。
-- S01/T010 已完成，本轮按用户要求停止。下一任务 T020 仍为 TODO，尚未开始；需新的切片授权后再执行。
+- S01/T010、S02/T020 与 S03/T021 已完成；T022 及后续任务不得在本轮提前开始。
+
+### 6.1 T040 verification update (2026-09-19)
+
+The T040 read-only recheck found no Vietnamese local engine, `vi-VN` voice, model/license, or loopback service. Dedicated and solution tests both passed 5/5, and `dotnet build TikTokAudio.slnx -c Debug --no-restore` completed with 0 warnings and 0 errors. Because AC-06 still lacks real synthesis/listening and P50/P95 evidence, T040 remains ACTIVE. The next allowed action is to obtain the minimum authorized engine input recorded in `docs/T040-engine-report.md`; T041 remains unavailable until T040 is DONE.

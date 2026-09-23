@@ -5,4 +5,7 @@
     <Project Path="src/TikTokAudio.Infrastructure/TikTokAudio.Infrastructure.csproj" />
     <Project Path="src/TikTokAudio.Desktop/TikTokAudio.Desktop.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TikTokAudio.Application.Tests/TikTokAudio.Application.Tests.csproj" />
+  </Folder>
 </Solution>
