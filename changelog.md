@@ -6,6 +6,18 @@
 
 当前版本 0.1.0 是文档基线版本，不是可运行应用版本。后续条目区分“文档版本”和“应用版本”；两者不必同步增长。新记录置于最上方，保留旧记录，不改写历史结果。
 
+## 2026-09-24 — S16/T062 启动
+
+- T061验收完成后，T062按依赖和P0优先级进入ACTIVE。登记互动语音接线协调器及专属测试的互斥所有权；暂不修改共享Contracts、TTS引擎、调度器、UI或平台适配器。
+- 本轮目标：本地TTS准备、候选新鲜度/场次/引擎隔离、AudioPlaybackScheduler插播、完整成功回写与失败释放；真实网络、音频设备和平台测试关闭。
+- 当前仅记录启动，不将未实现内容写成完成；验证证据待本轮结束后补充。
+## 2026-09-24 — S15/T061 互动规则与候选生命周期完成
+
+- T061 DONE；新增InteractionModels、InteractionRuleCoordinator及84项专属测试。K/V/W完整播完起算，TTL按ReceivedAt扣除后以单调时钟判断；欢迎/关键词最新候选、关注FIFO20项、已开始保护、场次及停止隔离完整覆盖。
+- 多模板注入随机、越南语NFC与安全预览；关键词Priority/Order/RuleId稳定决胜；精确匹配保留原始符号含义，朗读清理防护远程标记和占位符注入。语音/文字可独立选择、完成和失败释放。
+- 复用T060 admission及reservation，有界丢弃结果与满载背压；不新增永久去重集合，不修改冻结契约、项目配置、数据库或UI。宿主接线与真实试听留T062/后续任务，文字发送通道留T073。
+- 专属84/84、全方案544/544（Application355 + Integration189）通过；Build零警告错误，静态及新增未跟踪文件空白检查通过。全为内存模拟，无真实网络、TTS、设备或平台动作。证据与限制见docs/T061-interaction-rules-report.md。
+- 保留全部既有未提交成果，无stage/commit/push。T062转READY但未启动，T043 REVIEW、T044 DEFERRED保持。
 ## 2026-09-24 — S07/T042 TXT 分段、缓存与预生成完成
 
 - T042 DONE；新增严格UTF-8/BOM导入、越南语NFC/Unicode安全分段、操作员商品标记预检查与确定性边界元数据；不执行商品副作用。
@@ -185,3 +197,68 @@
 T040 remains ACTIVE. A read-only recheck confirmed SDK 10.0.401, the target Windows environment, and the existing audio endpoints. Dedicated and solution tests each passed 5/5; the solution build completed with 0 warnings and 0 errors. No authorized Vietnamese local engine, model/voice, license, synthesis sample, listening result, or P50/P95 evidence is available, so the task cannot be marked DONE. No model was downloaded, no service or network TTS was called, and no platform side effect occurred. The next allowed action is to supply the minimum authorized engine input documented in `docs/T040-engine-report.md`.
 
 `git diff --check` exited 0 on 2026-09-24; only the five authorized project documents changed. Existing untracked screenshot was preserved.
+
+## 2026-09-24 T043
+
+- 完成配置化多引擎注册、切换、EngineRevision 隔离和播放占用保护。
+- 新增 T043 专属测试；应用92/92、集成89/89、总181/181通过，build 0警告/0错误。
+- 第二个真实引擎与往返实测留给 T044。
+
+## 2026-09-24 T044暂缓与T050完成
+
+- 按用户指示将T044第二真实引擎设为DEFERRED，保留现有ITtsProvider/注册扩展点，不下载新模型。双引擎完整验收仍未通过。
+- 更正上条T043完成声明：只完成进程内注册器；revision尚未驱动旧预生成失效、地址配置装配尚缺。T043调整为REVIEW，原源码/测试保留，docs/T043-engine-switching-report.md已明确限制。
+- 完成S09/T050：固定NAudio2.2.1、显式WASAPI设备选择、受限素材解码及可定位PCM缓存、单路输出、源游标、暂停/恢复/停止、自然结束和旧回调/取消隔离。
+- 新增43项测试，全224/224通过；解决方案及独立smoke build均0警告/错误。真实Realtek设备完成暂停冻结/恢复/检查点重新打开/自然结束，播放中Stop 18.5297ms，自有缓存释放。报告docs/T050-audio-report.md。
+- T051 READY未启动；T043/T044后续验收不绕过。未commit/push，既有工作区成果全部保留。
+
+## 2026-09-24 S10/T051 产品目录导入完成
+
+- 成果类型：已整合代码（尚未提交）；需求0.1.1，基线main/6e5dcf2，无成果提交。REQ-PRE-001、REQ-CTRL-001及AC-05数字排序部分。
+- 新增Application.Media素材快照/问题模型与Infrastructure.Media目录导入器：只读指定三级目录，产品/组数字排序，支持不同组数，集中校验空组、重复编号、坏文件、不支持文件和缺失映射；问题产品不可启动，独立好产品保留可用性，根级不完整结果整体阻止。
+- 显式操作者片段覆盖元数据进行目标映射预检，文件名标记不执行；复用T050受限解码，保留原素材并清理自有临时session缓存。没有新增共享契约修改、依赖版本变更、数据迁移或引擎下载。
+- 新增专属测试45/45通过，全方案269/269通过，build0警告/0错误，静态检查通过；精确命令及证据见docs/T051-import-report.md。普通测试仅合成WAV与临时目录，无设备/网络/TTS/平台操作。
+- 影响文件：Application/Media模型、Infrastructure/Media导入器、Integration专属测试、T051报告及四份治理文档。所有原有未提交成果保留，未stage/commit/push。
+- T051 DONE；下一T052 READY未启动。完整洗牌/循环AC-05、真实平台映射和压缩格式兼容性非本轮验收。T043 REVIEW、T044 DEFERRED不变。
+
+## 2026-09-24 S11/T052 预制播放计划完成
+
+- 成果类型：已整合代码（未提交）；需求0.1.1，基线main/6e5dcf2，无成果提交。REQ-PRE-002/AUD-003/CTRL-001及AC-04逻辑恢复、AC-05模拟层。
+- 新增Application.Playback四文件及专属测试：产品/组数字顺序、不同组数循环、每组独立洗牌及跨袋不连续重复、固定效果种子、完整快照保存/校验/恢复、源帧游标、旧修订/上下文拒绝及原子替换。
+- 选片只产生候选商品边界，音频开始确认后一次消费；显式片段覆盖优先，恢复不重放已消费边界。缺子组1的计划启动/替换明确拒绝，允许1/3/7等非连续组号；T051导入未改。
+- 专属66/66、全335/335通过，无跳过；最终build0警告/0错误，静态检查通过，独立只读审查意见已整合。命令及证据边界见docs/T052-planner-report.md；本轮新增测试仅纯内存，不调用音频设备、TTS、网络或平台。
+- 未修改冻结共享契约、包/项目版本、数据库迁移或UI；完整快照后续持久化、真实音频开始联动和恢复误差验收留相应切片。原有未提交成果/worktree保留，未stage/commit/push。
+- T052 DONE；T053 READY未启动，T043 REVIEW/T044 DEFERRED保持。
+
+## 2026-09-24 S12/T053 基础与互动音频调度完成
+
+- 成果类型：工作区已整合代码（未提交）；需求0.1.1，基线main/6e5dcf2。T053 DONE，REQ-AUD-001…004及AC-03/04/11的本地调度逻辑完成。
+- 新增Application调度器与互动模型：有界异步准备/命令、准备后插播、关注>关键词>欢迎、互动不互相打断、稳定源游标恢复、基础自然推进及一次边界；暂停/恢复、停止/换场、输出准备TTL、旧任务隔离及终态通知归属有竞争测试。
+- 最小补齐T050短淡出：可选会话能力、5×6ms本流音量过渡、停止不等待、失效时恢复原音量；不修改冻结接口、设备主音量或依赖版本。宿主Pump接入及规则层K/V/W留后续切片。
+- 本轮新增63项测试；调度专属51/51、淡出/输出相关26/26、真实输出内存集成2/2，全398/398通过，Build 0警告/0错误，静态检查通过；独立审查已整合。命令、调用约定及限制见docs/T053-scheduler-report.md。
+- 影响Application.Playback、Infrastructure.Audio、专属测试、报告和四份治理。没有真实设备/TTS/网络/平台操作；真实延迟/恢复误差及试听未验收。全部既有修改/worktree保留，未stage/commit/push。
+- 下一T055 READY未启动；T054也READY，T043 REVIEW/T044 DEFERRED保持。引擎/模型继续外部部署。
+
+## 2026-09-24 S13/T055 TXT基础计划与模式互斥完成
+
+- 成果类型：工作区已整合代码（未提交）；需求0.1.1，基线main/6e5dcf2。T055 DONE，REQ-TTS-002/004及AC-03/04/09应用层行为完成。
+- 新增应用层计划桥接与TXT计划器，复用导入/缓存/预生成；当前及下一段就绪门槛、缺供给等待、默认循环/可选一次、开始确认后一次标记、插播源游标恢复与无标记段目标继承通过验证。
+- 调度器支持显式基础模式切换，单主流停止屏障、保留暂停/场次、取消及隔离旧结果；修复满载队列下切换重启与调用者先取消的回调收尾竞态。未改冻结契约、Domain、UI、项目配置、依赖或迁移。
+- 新增专属51/51通过，最终全449/449通过，Build 0警告/0错误，静态检查和独立审查通过。实际越南语导入/预生成/播放的内存垂直链通过；精确命令、调用约定与证据限制见docs/T055-tts-playback-report.md。
+- 影响Application.Playback四文件、两份专属测试、T055报告和四份治理。真实设备指标/试听、平台动作、桌面接线、持久化及T043剩余联动仍待相应切片；本轮无真实TTS/设备/网络/平台操作，引擎与模型保持外部部署。
+- 全部既有修改/worktree保留，未stage/commit/push。下一T060 READY未分配/启动；T054仍READY，T043 REVIEW、T044 DEFERRED保持。
+
+## 2026-09-24 S14/T060 事件去重与会话状态完成
+
+- T060 DONE；新增应用层事件处理入口与协调器，实现严格 EventId 去重、缺 EventId 短期降级指纹、缺 UserId 跳过针对性互动、Enter/Follow 分离业务预留、Reserved/Completed/Unknown/Cancelled 生命周期及重连保留 SessionId。
+- 新增专属11/11测试，覆盖房间/事件类型隔离、同场用户动作独立性、失败/取消不写成功和并发注册；全方案Application271 + Integration189 =460/460通过，Build 0警告/0错误。
+- 未修改冻结共享契约、Domain、UI、项目配置或数据库迁移；无网络、平台、真实TTS或设备操作。跨进程 Completed 恢复留后续持久化切片，T062负责实际语音调度成功回写。
+- 全部既有工作区成果保留，未stage/commit/push。下一T061 READY未启动；T054仍READY，T043 REVIEW、T044 DEFERRED保持。
+
+
+## 2026-09-24 S16/T062 ????????
+
+- ?? `InteractionPlaybackCoordinator` ? `T062InteractionPlaybackTests`?????????? TTS/??????????????? T060 reservation ??/?????
+- ?????????????????????????????????4/4?Application359/359????548/548???Build 0??/0???`git diff --check`???
+- ????????UI?????????????T044 ?? DEFERRED????? READY ? T054???????
+- ?????????????stage/commit/push?

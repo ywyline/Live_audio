@@ -1,10 +1,81 @@
 # 工作区与会话交接
 
-文档基线：0.1.0｜需求版本：0.1.1｜更新时间：2026-09-24｜当前唯一切片：S07 / T042｜状态：DONE。
+## 2026-09-24 当前：S16/T062 DONE
 
-本文件描述真实现场，不是未来设计。恢复会话必须核对文件和 Git 状态，不能把这里的计划当作已经实现。
+T061已完成并通过专属84/84、全方案544/544及Build零警告错误。按依赖→优先级→顺序选择T062作为下一个P0切片，当前由Integrator与t062_coordinator共享目录互斥实现。允许路径、验收条件和停止点见current_task.md。禁止提前修改冻结Contracts、调度器、TTS引擎或UI。
 
-## 2026-09-24 最新交接：S07/T042 DONE
+本轮目标是把T061语音候选接入现有本地TTS/缓存与AudioPlaybackScheduler：准备阶段不暂停基础，成功完整播放后冷却并写Completed，失败/取消/旧场次/旧引擎结果释放预留；文字、商品、第二引擎和真实平台行为留后续任务。所有测试使用内存假实现。
+
+以下为历史记录；当前状态以本条及tasks/current_task为准。
+## 2026-09-24 当前交接：S15/T061 DONE
+
+- 完成K/V/W与TTL单调计时、欢迎/关键词最新候选、关注20项FIFO、单语音租约、场次/房间/停止隔离、多模板注入随机、关键词确定排序和语音/文字独立决策。按通道失败不取消另一通道；匹配与朗读清理解耦，保留越南语NFC/重音并阻止远程标记注入。
+- 本轮新增Application/Interactions两份实现、T061InteractionRulesTests及docs/T061-interaction-rules-report.md，更新四份治理。未改冻结契约、Domain、UI、项目配置、数据库、真实引擎或平台适配器。
+- 最终专属84/84，全方案544/544（Application355 + Integration189），无失败/跳过；Build退出0、0警告/0错误；静态及未跟踪文件额外空白检查通过。首轮11项结果已被完整验收取代，精确命令见报告。所有工作者已交还所有权，无待整合成果。
+- T062必须消费DrainDiscards释放reservation并取消对应准备任务；Enqueue拒绝时由调用方处理尚未移交的预留；实际完整播完才记T060成功。文字发送总间隔/平台限制留T073，不能把规则层默认TextCooldown=0视为真实发送许可。
+- main/HEAD仍6e5dcf29ee6825e238cc9b7c17128df741dc1636，SDK10.0.401。原有T043/T050/T051/T052/T053/T055/T060成果、Infrastructure.csproj修改、tools与三个旧worktree全部保留；无stage/commit/push/reset/clean。
+- 下一最小READY为T062（T041/T053/T061均DONE，P0顺序优先），本轮未分配/启动；下轮先设唯一ACTIVE并登记范围。T054仍READY、T043仍REVIEW、T044仍DEFERRED。TTS/模型外置不变，本轮未使用真实网络、TTS、音频设备或平台。
+
+以下为历史记录；当前状态以本条及tasks/current_task为准。
+## 2026-09-24 当前执行：S14/T060 ACTIVE
+
+用户继续后，T055 已验收，按依赖→优先级→顺序选择 T060。当前实现范围是事件接收去重、每场用户去重、Reserved/Completed 生命周期、缺少 EventId/UserId 的显式降级与重连保留 SessionId/去重记录。已登记实现、测试、审查三项互斥所有权；尚无T060实现或验证成果，禁止把规划写成完成。
+## 2026-09-24 当前交接：S13/T055 DONE
+
+- 完成TXT基础计划：逐段当前/后继就绪门槛、缺供给等待、默认循环/可选一次、成功开始一次消费操作员标记、插播按原资产/源游标恢复。模式切换经单一输出停止屏障，保留场次/暂停状态，取消并隔离旧准备和互动结果。
+- 本轮新增IBasePlaybackPlan.cs、TtsPlaybackPlanner.cs、TtsPlaybackPlannerTests.cs、TtsPlaybackSchedulerTests.cs及docs/T055-tts-playback-report.md；最小修改PreRecordedPlaybackPlanner.cs和AudioPlaybackScheduler.cs；更新四份治理。未改冻结契约、Domain、UI、项目/依赖、数据库或Infrastructure实现。
+- 最终专属51/51（计划28、调度23）、全方案449/449（Application260 + Integration189）通过，无失败/跳过；dotnet build TikTokAudio.slnx -c Debug --no-restore退出0、0警告/0错误。静态检查及只读审查通过，精确命令见报告。
+- 审查所见普通队列满载切换重启、调用者先取消的回调生命周期问题已修复，定向竞争测试通过；实际UTF-8越南语导入→预生成→计划→调度内存链通过。仅负责人运行test/build，所有子任务整合完毕、写入分配结束，无待整合成果。
+- 宿主仍须驱动PumpAsync及分批PrepareAsync；手工ApplyPreparation仅接受受信任同计划结果。T043旧引擎联动/配置装配仍REVIEW；跨进程检查点、桌面接线、真实音频延迟/恢复/试听及平台动作留后续切片。本轮未调用真实网络、TTS、设备或平台；引擎/模型继续外部部署。
+- main/HEAD仍6e5dcf29ee6825e238cc9b7c17128df741dc1636，既有T043/T050/T051/T052/T053源码/测试/报告、Infrastructure.csproj修改、截图和三个旧worktree全部保留。新增文件未跟踪，未stage/commit/push/reset/clean。
+- 下一最小READY为T060（T021 DONE，P0优先于T054 P1，同优先级顺序早于T070/T080），已在tasks标READY但未分配/启动；下轮先登记唯一ACTIVE及允许路径，再实现去重/Reserved/Completed/缺ID降级与重连状态。T054仍READY、T044仍DEFERRED。本轮停止交接。
+
+## 2026-09-24 历史交接：S12/T053 DONE
+
+- 已完成基础/互动串行调度：准备不打断基础，Follow > Keyword > Welcome，短淡出后按源游标插播/恢复，基础自然结束才推进计划，确认开始后一次消费边界。暂停、停止、换场、取消、过期及迟到结果隔离；终态通知携带原SessionId且不会被并发Stop丢失。
+- 新增Application/Playback的AudioPlaybackScheduler.cs、SchedulerModels.cs；Infrastructure/Audio新增IFadingAudioPlaybackSession.cs、AudioFade.cs，最小修改已有SingleVoiceAudioOutput.cs、NAudioSessionFactory.cs完成逐流短淡出。新增AudioPlaybackSchedulerTests.cs、AudioFadeTests.cs、AudioSchedulerIntegrationTests.cs及docs/T053-scheduler-report.md；更新四份治理。未改冻结契约、需求、UI、项目配置、依赖或数据库。
+- 宿主后续须驱动PumpAsync并处理返回状态；T062规则层按类别最多提交一个未终结互动，冷却后再提交下一条。T053不实现K/V/W/去重。输出准备阶段使用IClock TTL监测，开始后不因TTL截断；命令准入与生命周期取消约定见报告。
+- 验证：调度51/51、淡出/原输出26/26、真实SingleVoice配内存工厂集成2/2；全方案Application209 + Integration189 = 398/398通过，无跳过；dotnet build TikTokAudio.slnx -c Debug --no-restore退出0、零警告零错误。静态空白、阻塞调用及允许范围检查通过，精确命令见报告。
+- 所有工作者分配结束，独立最终审查无阻塞，负责人已整合，无待整合成果。仅负责人运行测试/Build；本轮无真实设备/TTS/网络/平台操作。真实≤500ms抢占、≤100ms恢复误差与短淡出听感仍需后续本地验收，不能由内存证据替代。
+- main/HEAD仍6e5dcf29ee6825e238cc9b7c17128df741dc1636；所有既有T043/T050/T051/T052成果、Infrastructure.csproj修改、截图和三个旧worktree保留。新增文件未跟踪；未stage/commit/push/reset/clean。
+- 下一最小切片T055 READY（T042/T053 DONE，P0优先于T054 P1），尚未启动；下一轮先登记唯一ACTIVE及范围，接入TXT基础计划/模式互斥/循环一次播放/一次性标记。T054同时READY。T043 REVIEW、T044 DEFERRED不变，双引擎完整验收仍未完成。
+
+## 2026-09-24 历史交接：S11/T052 DONE
+
+- 用户继续后按依赖/优先级/READY/顺序完成T052：产品组数字序循环、各组独立洗牌袋及跨袋不连续重复、独立效果种子、源游标与完整袋/随机状态恢复、严格递增计划替换、开始确认后一次消费商品边界。
+- 新增Application/Playback四文件（PlannerCatalog、PlannerRandom、PreRecordedPlannerSnapshot、PreRecordedPlaybackPlanner）、Application.Tests/PreRecordedPlaybackPlannerTests.cs及docs/T052-planner-report.md；另外更新tasks/current_task/handoff/changelog。既有T043/T050/T051文件、冻结契约、依赖/项目、UI与数据库未改。
+- 缺少组1时无法触发n-1进入，因此计划构造/替换明确拒绝，防止沿用上一商品；仍允许1/3/7，不改T051导入。Select仅准备候选边界，T053应在音频开始成功后调用AcknowledgePlaybackStarted。准备失败重用CurrentItem，不再次Select推进；恢复后下一Select重发原item一次。
+- 完整快照是应用层附加模型；单独PlaybackCheckpoint不能跨实例重建洗牌历史，会明确失败。快照没有执行恢复/播放副作用，跨进程持久化/人工恢复预览留后续任务。详细API、标识语义及限制见报告。
+- 专属66/66，全方案Application158+Integration177=335/335通过；dotnet build TikTokAudio.slnx -c Debug --no-restore退出0，0警告/0错误；静态空白检查通过。本轮新增测试纯内存/注入随机，无设备/TTS/平台/网络调用；没有新增后台服务。
+- t052_tests只写专属测试，t052_review只读；负责人已完成整合，全部分配结束，无待整合成果。共享目录互斥，仅负责人运行test/build。
+- main/HEAD仍6e5dcf29ee6825e238cc9b7c17128df741dc1636；全部既有未提交源码/测试/报告/工具和治理修改保留，三个旧worktree及截图不变，无stage/commit/push。新增文件未跟踪，不冒充已提交。
+- 下一最小切片T053 READY（T021/T050/T052 DONE），尚未分配。下次先登记唯一ACTIVE，再实现基础/互动调度、准备后抢占、优先级、恢复、暂停/紧急停止。T043 REVIEW、T044 DEFERRED保留，不提前下载第二引擎或启动真实平台。
+## 2026-09-24 历史交接：S10/T051 DONE
+
+- 用户继续后按依赖、P0和顺序选择T051；已完成指定根目录的产品/组/素材导入、数字排序、重复/空组/坏文件/映射集中预检、显式操作者片段覆盖元数据、产品级启动阻止、有界扫描及临时校验缓存清理。
+- 新增src/TikTokAudio.Application/Media/ProductDirectoryImport.cs、src/TikTokAudio.Infrastructure/Media/ProductDirectoryImporter.cs、tests/TikTokAudio.Integration.Tests/ProductDirectoryImporterTests.cs、docs/T051-import-report.md；仅另外更新tasks/current_task/handoff/changelog。未修改原T043/T050实现、项目配置、冻结契约、requirements、UI或数据库。
+- main/HEAD仍6e5dcf29ee6825e238cc9b7c17128df741dc1636；起始四份治理文档、Infrastructure.csproj及T043/T050源码/测试/报告/工具全部保留。旧三个worktree和截图不变，未stage/commit/push。本轮新增文件未跟踪，不等于已提交。
+- t051_tests只写专属测试、t051_review只读复核，负责人已整合；分配全部结束，无活动worker或待整合成果。仅负责人运行构建与测试。
+- 专属45/45通过；dotnet test TikTokAudio.slnx -c Debug --no-restore退出0，92+177=269/269通过；dotnet build TikTokAudio.slnx -c Debug --no-restore退出0、0警告/0错误。git diff --check及新增文件静态空白检查通过。精确命令和边界见docs/T051-import-report.md。
+- 本轮没有真实TTS、音频设备、平台或网络操作，没有新增后台服务。导入器取消直接测试仅覆盖预先取消；压缩格式/路径竞态未新增实测；不宣称完整AC-05或平台映射已真实确认。
+- 下一最小切片T052 READY（T021/T051 DONE），尚未分配：先登记唯一ACTIVE，再实现分组顺序、独立洗牌袋、循环与恢复等批准范围。不提前启动T053/UI/真实平台。T043 REVIEW和T044 DEFERRED保留，不以本轮完成绕过后续依赖。
+## 2026-09-24 历史交接：S09/T050 DONE
+
+- 用户明确暂缓T044第二真实引擎：DEFERRED，保留ITtsProvider/注册扩展点，不下载模型；完整双引擎验收保留。
+- T043复核：注册器revision未接入provider/pre-generator，外部地址配置未实现；撤回DONE为REVIEW并更正报告。原源码/4项测试保留，未顺手修复T043。
+- T050已完成NAudio2.2.1/WASAPI设备选择、受限本地音频解码/PCM缓存、单主流、源帧游标、暂停/恢复/停止、旧准备/回调隔离与故障释放；未改冻结契约/UI/平台/数据库。
+- main/HEAD 6e5dcf29ee6825e238cc9b7c17128df741dc1636；起始已有T043七个未提交文件。最终在其基础上新增Audio五文件、Integration音频两测试、独立smoke工具两文件、T050报告，并改Infrastructure.csproj与四份治理文档/T043报告。未stage/commit/push；截图及三个旧worktree保留。
+- 负责人完成worker audio_backend四文件整合和只读audit反馈；没有活动实现分配、无待整合成果。共享文件互斥，仅负责人执行构建/测试/实测。
+- 最终：dotnet test TikTokAudio.slnx -c Debug --no-restore，92+132=224/224通过；两个build均退出0、0警告/错误。新增43项普通测试无设备/网络/TTS；静态检查无空白错误。详见docs/T050-audio-report.md精确命令。
+- 独立工具显式选定Realtek扬声器：暂停与等待后7249帧一致，恢复13226帧、重新打开检查点后12063帧；播放中Stop 18.5297ms；自然结束48000帧、自有session缓存已释放。未进行人工音质、真实压缩素材或录音恢复误差验收。
+- 工具运行均已退出，无本轮新增后台服务；旧VieNeu服务不作启停或存活声明。只保留合成测试音临时目录，路径见报告，不纳入发布。
+- 下一最小切片T051 READY（依赖T020 DONE），先登记唯一ACTIVE再做目录导入/排序/映射校验。不绕过T043补齐及T044双引擎未来验收，不提前启动真实平台。
+
+## 2026-09-24 历史启动：S09/T050 ACTIVE
+
+T044用户暂缓（DEFERRED），保留接口，不作为已完成。T043注册器revision与预生成链未连通，原完成声明更正为REVIEW；T050不依赖它。main/6e5dcf2，保留上一轮所有未提交文件，无commit/push。执行范围/Owner见current_task。以下旧指针均属历史。
+
+## 2026-09-24 历史交接：S07/T042 DONE
 
 - 用户要求继续，现已完成T042：Application.Tts导入/分段/商品边界元数据/缓存键/预生成，Infrastructure.Tts.Cache原子文件缓存及清理，4份专属测试文件。Domain/Application.Contracts接口、Desktop、依赖包与需求0.1.1不变。
 - 主仓库E:\Live_audio，main / HEAD e67e2e5421a32861cbf14ec3497fd94208bd6ae8。dirty包括全部既有T040/T041成果、T042源码/测试/报告及治理文档；未stage/commit/push；vieneu-window.png未处理。
@@ -258,3 +329,23 @@ Task ID / Owner / 当前状态（建议 REVIEW）：
 - Next allowed action: re-run T040 only after that input arrives; T041/T042/T044 remain disallowed until T040 is DONE. No platform, network, credential, or audio-device side effect was performed.
 
 `git diff --check` exited 0 on 2026-09-24; only the five authorized project documents changed. Existing untracked screenshot was preserved.
+
+## 2026-09-24 T043 验收完成
+
+S08/T043 已完成：新增配置化多引擎注册与线程安全切换，切换递增 EngineRevision，播放占用期间拒绝切换，旧 provider 结果沿用既有 revision/EngineId 检查隔离。应用测试92/92、集成测试89/89、全181/181通过，build 0警告/0错误，报告见 `docs/T043-engine-switching-report.md`。未接入第二真实引擎、Desktop UI、真实设备或平台操作。T044 依赖 T043 满足后转 READY；下一轮需先登记 T044 活动切片。
+
+## 2026-09-24 S10/T051历史启动
+
+用户继续；依赖T020 DONE，T051 ACTIVE。本轮只读当前相关文件，保留T043/T050和所有旧worktree。独立测试文件分配t051_tests；Integrator负责实现、治理及顺序构建验证。完整允许范围见current_task.md；尚无T051验收证据。
+
+## 2026-09-24 S11/T052历史启动
+
+用户继续，依赖T021/T051均DONE，T052 ACTIVE。范围/所有权见current_task.md；原成果和旧worktree保留，无stage/commit/push。计划器只用内存和注入随机，不操作设备/平台；验证未完成前不计DONE。
+
+
+## 2026-09-24 S16/T062 ??
+
+- T062 ? DONE??? `src/TikTokAudio.Application/Interactions/InteractionPlaybackCoordinator.cs`?`tests/TikTokAudio.Application.Tests/T062InteractionPlaybackTests.cs`?`docs/T062-interaction-playback-report.md`?
+- ?????4/4?Application359/359????548/548?`dotnet build TikTokAudio.slnx -c Debug --no-restore` 0??/0???`git diff --check` ??0?
+- ?? `main` / HEAD `6e5dcf2`??????????????stage??commit??push????????????/??/?????
+- ???? READY?T054???????????????????????????T044 ????????????? DEFERRED?
