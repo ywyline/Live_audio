@@ -1,8 +1,66 @@
 # 工作区与会话交接
 
-文档基线：0.1.0｜更新时间：2026-09-23｜当前唯一切片：S05 / T040｜状态：ACTIVE。
+文档基线：0.1.0｜需求版本：0.1.1｜更新时间：2026-09-24｜当前唯一切片：S07 / T042｜状态：DONE。
 
 本文件描述真实现场，不是未来设计。恢复会话必须核对文件和 Git 状态，不能把这里的计划当作已经实现。
+
+## 2026-09-24 最新交接：S07/T042 DONE
+
+- 用户要求继续，现已完成T042：Application.Tts导入/分段/商品边界元数据/缓存键/预生成，Infrastructure.Tts.Cache原子文件缓存及清理，4份专属测试文件。Domain/Application.Contracts接口、Desktop、依赖包与需求0.1.1不变。
+- 主仓库E:\Live_audio，main / HEAD e67e2e5421a32861cbf14ec3497fd94208bd6ae8。dirty包括全部既有T040/T041成果、T042源码/测试/报告及治理文档；未stage/commit/push；vieneu-window.png未处理。
+- 验证：Application88/88、Integration89/89、全解决方案177/177，Debug build零警告零错误；git差异检查无空白错误。详细命令、版本/缓存限制及测试证据见docs/T042-preparation-report.md。
+- 本轮仅内存模拟provider/cache与临时PCM16 WAV；跨模块验证从导入到磁盘缓存、重建后无合成复用、迟到取消清理和哈希损坏拒绝就绪。没有连接真实VieNeu/网络/设备/平台，没有新人工试听结论。
+- 既有本地引擎部署不变；本轮未启动/停止服务，也未重新核对存活，最近T041记录为127.0.0.1:17863/PID17368，恢复时先重新检查。测试进程已退出，没有本轮新增后台服务。
+- 工作者/root/t042_script：task/t042-script / E:\Live_audio_t042_script / BaseCommit e67e2e5，仅导入器及专属测试；/root/t042_cache：task/t042-cache / E:\Live_audio_t042_cache / 同基线，仅Cache目录及专属测试。无提交，已由Integrator顺序复制、复核、修正、测试。两工作树和既有T041工作树保留；主工作区版本为准，无待整合补丁或活动实现分配。
+- 无T042剩余阻塞。T043 READY、未分配；下一条动作：按current_task登记T043唯一活动切片/允许路径后实施多引擎配置与切换。当前轮停止。
+- 限制：模型版本依赖调用方提供已核验部署标识；损坏缓存/崩溃残留不自动删除，可能需处理后重试；不证明抵抗恶意本地目录替换竞态。实际播放一次性边界/循环、Desktop、第二真实引擎及完整AC-06/09待后续任务。下方ACTIVE/旧状态为历史。
+
+## 2026-09-24 当前执行：S07/T042 ACTIVE
+
+用户要求继续，T021/T041依赖DONE；负责人登记T042范围、新协作契约和两个独立工作树。所有权与停止点见current_task；保留main/e67e2e5的全部未提交T040/T041成果。下方T041完成为历史。
+
+## 2026-09-24 当前交接：S06/T041 DONE
+
+- 用户要求继续；已完成首个本机VieNeu HTTP适配器，影响Infrastructure.Tts、专属测试工程和解决方案登记。Domain/Application签名、Desktop、需求版本0.1.1不变，引擎/模型继续独立部署。
+- 实际主仓库E:\Live_audio，main / HEAD e67e2e5421a32861cbf14ec3497fd94208bd6ae8。未stage/commit/push；dirty包括既有requirements/T040及治理文档、新T041源码/测试/报告、解决方案登记。未跟踪vieneu-window.png保持原样。
+- 专属测试50/50，解决方案测试55/55，build零警告零错误，git diff --check退出0。命令与能力/错误/文件生命周期见docs/T041-adapter-report.md。
+- 独立真实验收程序与result.json位于%LOCALAPPDATA%\LiveAudio\t041-adapter-check；Healthy、25音色、Hải Đăng合成Succeeded，本次8.0974秒生成3.52秒48kHz单声道PCM16 WAV。Python wave独立读取通过。真实取消仅为请求前取消；中途取消由内存模拟覆盖；没有真实设备播放或平台操作。
+- 现有服务仍监听127.0.0.1:17863，本轮核对PID17368，未重启。需要停止时先核对进程确为该服务，再停止对应进程；API key仍引用本地vieneu-api-key.txt，值不入库。没有其他验收程序常驻。
+- /root/t041_tests分配已完成：task/t041-tts-tests / E:\Live_audio_t041_tests / BaseCommit e67e2e5，允许且仅生成专属测试文件，无提交。文件已由主会话顺序整合、修正预期、测试，主工作区版本为准；工作树保留。/root/t041_review只读复核结束；无待整合补丁或活动工作者。
+- T041无剩余阻塞；T042依赖均DONE，READY但尚未分配。下一条动作：登记T042为唯一活动切片并明确文件范围，再实施TXT分段/标记/缓存/预生成。本轮停止。
+- 未完成：T043切换编排、T044第二真实引擎、Desktop选择界面、播放设备集成与完整AC-06。下方T041 ACTIVE或T040待试听等均为历史，不代表当前状态。
+
+## 2026-09-24 最新执行：S06/T041 ACTIVE
+
+用户已要求继续，T020/T040前置已完成。负责人开始本机VieNeu HTTP适配器；测试工作者使用task/t041-tts-tests / E:\Live_audio_t041_tests独立工作树。分配和接口约定见current_task；下方READY/未启动为历史。主工作区保留此前未提交成果。
+
+## 2026-09-24 最新验收：T040 DONE，T041 READY
+
+- 用户明确反馈：“人工确认，这个声音符合要求”。据此接受当前 VieNeu 样音声音；不扩展为所有音色或所有样句逐项验收。
+- 结合既有固定模型/许可核对、真实离线/API合成与耗时证据，T040完成；T020/T040均DONE，T041转READY、尚未启动、Owner未分配。下方“待试听/ACTIVE/TODO”仅为此前历史。
+- 更新报告、current_task、tasks、handoff、changelog；部署根新增 `listening-review.json` 保存用户原话及来源，原始 `verification.json` 不改写。本轮不重跑合成或.NET测试，没有源码/需求修改。
+- 当前仓库仍main/e67e2e5，仅主工作树；保留所有此前未提交文档及未跟踪截图。文档差异检查通过，本轮未提交/推送。
+- 下一项允许动作：登记T041实现切片（Owner/AllowedPaths/依赖/验证）并实现本机HTTP适配器。引擎独立于EXE的需求保持；第二引擎、切换、GUI/GPU及应用音频设备集成未验收。
+
+## 2026-09-24 最新需求确认：引擎独立于 EXE
+
+- 用户明确要求后续可切换语音引擎，且不把引擎写入 Live_audio EXE。requirements 修订为0.1.1；工程治理基线仍为0.1.0。
+- REQ-TTS-001 已禁止在 EXE 中内嵌引擎实现、推理环境和模型（含自解压载荷）；已适配引擎使用本机服务配置切换，不因切换重新编译/打包 Live_audio。未知协议仍需适配。
+- AC-06 与 T041/T043/T044/T104 已同步独立部署、真实双引擎切换和发布产物检查。没有修改实现、共享契约或部署环境。
+- 当前仍 S05/T040 ACTIVE、待试听；T041/T043/T044/T104 仍 TODO。下一项允许动作仍是记录试听评价，验收后按依赖推进适配器。保留此前部署文档改动和未跟踪截图，本轮未提交/推送。
+
+## 2026-09-24 部署完成时的接续记录（人工确认前历史）
+
+- 仓库 `E:\Live_audio`，main/HEAD e67e2e5，仅主工作树。此前同步已完成；本轮五份 T040 文档修改尚未提交/推送。既有 `vieneu-window.png` 保留，不纳入成果。
+- 用户已授权下载和部署。VieNeu 桌面0.18.3、独立SDK3.8.3、ORT1.30.0完成安装；14个桌面模型共686,655,748字节通过官方哈希与大小核验，两个SDK补充文件已固定revision。详细模型标识见报告。
+- 运行根 `%LOCALAPPDATA%\LiveAudio`；venv、模型、HF缓存、密钥、样音均在这里，不进Git。`VIENEU_MODELS`用户变量指向其 `vieneu-desktop-models`。
+- `pip check`、`vieneu-local.py prepare-cache`、`vieneu-local.py verify`、`verify-local-api.py` 均退出0。离线合成使用audit hook拒绝socket connect/DNS；5段48kHz WAV验证通过，P50/P95为2.5368/5.3269秒，待人耳试听。
+- 服务最后启动 PID 17368，监听127.0.0.1:17863；恢复时重新核对进程命令行与健康，不假定PID永久有效。最终API合成200，3.3970秒生成2.72秒音频；无key401，不支持MP3返回400。服务使用HF离线模式，并非全面网络沙箱。
+- 默认Hải Đăng，25预置音色。`samples/`为试听资产；`verification.json`和`api-verification.json`为实测证据；`使用说明.md`有手动启动命令。密钥位于`vieneu-api-key.txt`，不得输出或提交。
+- 先前runpy启动造成Pydantic解析失败已改为正常importlib模块导入，复验通过；helper拒绝空密钥。未修改官方SDK。
+- 后台启动PowerShell脚本两次创建均被自动审批拒绝，仅给出`blocked by policy`；未创建此脚本，未配置开机自启。现有Python helper可以直接运行。
+- 桌面模型目录已配置，但GUI模型状态/合成未确认。GPU、实际设备播放、长跑/取消及直播平台未验收；不声称可商用上线。
+- T040保持ACTIVE，T041保持TODO；下一动作是用户试听确认发音/音色，随后维护T040状态再进入T041。没有C#源码变化，本轮不重跑.NET测试。
 
 ## 2026-09-23 main 整合与远程同步
 
@@ -16,7 +74,7 @@
 
 - 本轮只读复核发现现有夹具限制（不在本次 Git 同步中扩展实现）：FakeClock 取消后 pending 项需等推进才清理，取消登记与推进存在资源清理竞态；模拟事件源断开后 channel 已完成，复用重连尚未支持；模拟队列/动作记录无界。5 个现有测试未覆盖这些场景，后续取消、重连和长跑测试前需另行修复/验收，当前提交仅保存阶段成果。
 
-## 1. 一分钟接续信息
+## 1. 历史接续信息（2026-09-18；当前以顶部为准）
 
 **当前验收（2026-09-18）：S05/T040 = ACTIVE。** 基线为 `main` / `a2883e7`，SDK 10.0.401、Host 10.0.12、RID win-x64；本轮未 commit/push。
 
@@ -198,3 +256,5 @@ Task ID / Owner / 当前状态（建议 REVIEW）：
 - Passed: dedicated tests 5/5, solution tests 5/5, `dotnet build TikTokAudio.slnx -c Debug --no-restore` (0 warnings / 0 errors), and `git diff --check` (0).
 - Blocker unchanged: no verifiable Vietnamese engine/model/voice/license is available, so synthesis, listening, and P50/P95 evidence cannot be produced. Minimum input remains an explicitly authorized local engine with model/voice version, license, and run method, or an installed loopback service address, health-check method, and test permission.
 - Next allowed action: re-run T040 only after that input arrives; T041/T042/T044 remain disallowed until T040 is DONE. No platform, network, credential, or audio-device side effect was performed.
+
+`git diff --check` exited 0 on 2026-09-24; only the five authorized project documents changed. Existing untracked screenshot was preserved.

@@ -1,10 +1,49 @@
 # 可集成成果与版本记录
 
-文档基线：0.1.0｜记录日期：2026-09-23。
+文档基线：0.1.0｜需求版本：0.1.1｜记录日期：2026-09-24。
 
 本文件只记录已经形成可集成成果的开发/文档变更。进行中过程、失败尝试和待整合工作者成果放在 handoff；每轮实施都要更新交接，但没有成果时不能制造一条“已完成”历史。
 
 当前版本 0.1.0 是文档基线版本，不是可运行应用版本。后续条目区分“文档版本”和“应用版本”；两者不必同步增长。新记录置于最上方，保留旧记录，不改写历史结果。
+
+## 2026-09-24 — S07/T042 TXT 分段、缓存与预生成完成
+
+- T042 DONE；新增严格UTF-8/BOM导入、越南语NFC/Unicode安全分段、操作员商品标记预检查与确定性边界元数据；不执行商品副作用。
+- 新增包含引擎/模型版本、音色/效果、分段/词典版本的SHA256缓存键；不透明版本按原值区分。磁盘PCM16 WAV结构/哈希验证、原子目录提交、容量/路径限制、跨实例锁及暂存资产清理，不引入数据库迁移或引擎打包。
+- 顺序预生成复用缓存，当前/下一段就绪才报告Ready；取消、旧revision、失败及清理结果明确；不同商品边界可共享音频而不混淆边界。
+- 新增122项测试，Application88/88、Integration89/89，全177/177通过，Debug build零警告零错误，差异检查无空白错误。跨模块测试验证重建后无引擎调用的文件复用，全部使用内存模拟与构造WAV，无真实网络/引擎/设备操作。
+- 证据及限制见docs/T042-preparation-report.md。两个工作者成果已整合，工作树保留，无提交；T043转READY，本轮未commit/push。实际播放/界面、第二引擎和完整AC-06/AC-09未交付。
+
+## 2026-09-24 — S06/T041 首个本机 HTTP TTS 适配器验收完成
+
+- T041 DONE；Infrastructure新增VieNeuTtsProvider、配置验证与PCM/WAV写入，健康/模型/音色/合成通过本机接口；引擎实现、运行时及模型继续独立部署，共享契约不变。
+- 实现回环地址限制、禁代理/重定向、总超时与流限额、旧revision拒绝、单provider合成、明确错误/能力映射，以及失败/取消资产清理；不引入缓存、切换编排或UI。
+- 新增50项纯内存HTTP测试，整合隔离工作者成果；专属50/50、全解决方案55/55，Debug build零警告零错误，git diff --check退出0。
+- 显式真实C#调用现有VieNeu：Healthy、25音色，Hải Đăng生成3.52秒WAV，本次耗时8.0974秒；独立wave读取通过。真实取消仅验证请求前取消，中途取消由模拟覆盖，无设备播放或新人工试听结论。
+- 证据见docs/T041-adapter-report.md及AppData/t041-adapter-check/result.json。未commit/push，保留既有修改、截图与工作者工作树；T042转READY，T043/T044和完整AC-06未完成。
+
+## 2026-09-24 — T040 首引擎人工试听验收完成
+
+- 成果类型：验收记录；S05/T040 DONE。用户原话“人工确认，这个声音符合要求”，接受当前VieNeu样音声音，补齐首引擎人工验收。
+- 沿用已验证的模型/许可、离线合成、API和小样本耗时；不冒充重新实测或全部音色逐项验收。原始verification.json保留，人工确认另存本地listening-review.json。
+- 更新T040报告及current_task/tasks/handoff/changelog，T041因T020/T040完成转READY；源码、共享契约、需求版本0.1.1及部署配置不变。
+- 文档/状态一致性核对与`git diff --check`退出0；本轮未重复运行合成或.NET测试，未提交/推送。双引擎切换、应用音频集成及完整AC-06仍待后续实现验收。
+
+## 2026-09-24 — 明确引擎独立部署与后续切换验收
+
+- 成果类型：需求/计划文档，需求版本0.1.1（工程治理基线0.1.0）；按用户明确要求更新 REQ-TTS-001 与 AC-06。
+- Live_audio EXE 不嵌入引擎实现、推理运行环境或模型权重（含内嵌/自解压载荷）。已适配且接口兼容的引擎通过本机配置切换，无需重新编译/打包 Live_audio；未知协议需另做适配。
+- 同步 requirements/tasks/current_task/handoff/changelog，将约束落实到 T041/T043/T044/T104；源码、共享契约和当前部署不变。T040仍ACTIVE，后续任务未提前实施。
+- 验证：文档差异、需求/任务引用与状态检查；`git diff --check` 退出0。纯文档变更不运行构建或真实合成；没有将未来验收写成已通过。
+
+## 2026-09-24 — S05/T040 本地引擎部署与实测证据
+
+- 成果类型：本地部署及验证文档；文档基线0.1.0；代码基线e67e2e5，本轮未提交/推送。T040仍ACTIVE，尚待人工试听，不代表切片全部完成。
+- 已安装VieNeu桌面0.18.3与独立SDK3.8.3；官方桌面模型14项哈希/大小核验通过，固定模型revision和依赖锁定记录保存在AppData。
+- CPU/ONNX/FP32真实禁网合成5段48kHz WAV通过；P50/P95为2.5368/5.3269秒（小样本）。本机API健康、25音色、真实合成、401鉴权和400格式错误检查通过。
+- `pip check`、缓存准备、离线合成、API复验均退出0。证据与精确命令见`docs/T040-engine-report.md`；只修改该报告及current_task/tasks/handoff/changelog，没有应用源码或数据库/共享契约变更。
+- 本地用户配置包含模型目录变量和服务密钥，密钥值不入库。模型、样音和venv均位于AppData，未改云端或平台行为。
+- 人工试听、桌面GUI、GPU和实际设备播放尚未验收；下一步试听验收，之后才可开始T041。
 
 ## 2026-09-23 — main 首次提交成果并同步远程
 
@@ -144,3 +183,5 @@
 ## 2026-09-19 | S05/T040 verification update
 
 T040 remains ACTIVE. A read-only recheck confirmed SDK 10.0.401, the target Windows environment, and the existing audio endpoints. Dedicated and solution tests each passed 5/5; the solution build completed with 0 warnings and 0 errors. No authorized Vietnamese local engine, model/voice, license, synthesis sample, listening result, or P50/P95 evidence is available, so the task cannot be marked DONE. No model was downloaded, no service or network TTS was called, and no platform side effect occurred. The next allowed action is to supply the minimum authorized engine input documented in `docs/T040-engine-report.md`.
+
+`git diff --check` exited 0 on 2026-09-24; only the five authorized project documents changed. Existing untracked screenshot was preserved.

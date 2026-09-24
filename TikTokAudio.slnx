@@ -7,5 +7,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/TikTokAudio.Application.Tests/TikTokAudio.Application.Tests.csproj" />
+    <Project Path="tests/TikTokAudio.Integration.Tests/TikTokAudio.Integration.Tests.csproj" />
   </Folder>
 </Solution>
