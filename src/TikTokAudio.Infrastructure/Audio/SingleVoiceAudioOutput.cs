@@ -1,10 +1,11 @@
 using System.Runtime.InteropServices;
 using TikTokAudio.Application.Contracts;
+using TikTokAudio.Application.Playback;
 using TikTokAudio.Domain;
 
 namespace TikTokAudio.Infrastructure.Audio;
 
-public sealed class SingleVoiceAudioOutput(IAudioSessionFactory factory) : IAudioOutput, IDisposable
+public sealed class SingleVoiceAudioOutput(IAudioSessionFactory factory) : IEffectAudioOutput, IDisposable
 {
     private readonly IAudioSessionFactory _factory = factory ?? throw new ArgumentNullException(nameof(factory));
     private readonly object _gate = new();
@@ -36,6 +37,20 @@ public sealed class SingleVoiceAudioOutput(IAudioSessionFactory factory) : IAudi
     // Success means playback started; natural completion is reflected by State/CurrentCursor.
     // Preparation runs outside the state lock so a Stop can invalidate it immediately.
     public async Task<OperationResult> PlayAsync(AudioPlaybackRequest request, CancellationToken cancellationToken)
+        => await PlayCoreAsync(request, null, cancellationToken).ConfigureAwait(false);
+
+    public Task<OperationResult> PlayWithEffectsAsync(AudioPlaybackRequest request,
+        PlaybackEffectSelection selection, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+        if (selection == PlaybackEffectSelection.Bypass) return PlayAsync(request, cancellationToken);
+        if (_factory is not IEffectAudioSessionFactory effects || !effects.Supports(selection))
+            return Task.FromResult(OperationResult.Unsupported("The requested effect requires an unavailable audio processor."));
+        return PlayCoreAsync(request, selection, cancellationToken);
+    }
+
+    private async Task<OperationResult> PlayCoreAsync(AudioPlaybackRequest request,
+        PlaybackEffectSelection? selection, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         if (cancellationToken.IsCancellationRequested) return OperationResult.Cancelled();
@@ -56,7 +71,9 @@ public sealed class SingleVoiceAudioOutput(IAudioSessionFactory factory) : IAudi
         var replacing = false;
         try
         {
-            prepared = await _factory.PrepareAsync(request, cancellation.Token).ConfigureAwait(false);
+            prepared = selection is null
+                ? await _factory.PrepareAsync(request, cancellation.Token).ConfigureAwait(false)
+                : await ((IEffectAudioSessionFactory)_factory).PrepareWithEffectsAsync(request, selection, cancellation.Token).ConfigureAwait(false);
             lock (_gate)
             {
                 if (_disposed || generation != _generation || cancellation.IsCancellationRequested)

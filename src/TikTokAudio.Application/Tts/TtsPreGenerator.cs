@@ -6,15 +6,36 @@ namespace TikTokAudio.Application.Tts;
 
 public sealed class TtsPreGenerator
 {
-    private readonly ITtsProvider _provider;
-    private readonly ITtsAudioCache _cache;
-    private readonly int _maxSegmentsPerBatch;
-    private readonly string _engineId;
-    private readonly EngineRevision _revision;
+    private ITtsProvider _provider = null!;
+    private ITtsAudioCache _cache = null!;
+    private int _maxSegmentsPerBatch;
+    private string _engineId = string.Empty;
+    private EngineRevision _providerRevision;
+    private TtsEngineRegistry? _registry;
+    private EngineRevision? _registryRevision;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private TtsPreparationSnapshot _snapshot = new(TtsPreparationState.Idle, Array.Empty<PreparedTtsSegment>(), 0, null);
 
     public TtsPreGenerator(ITtsProvider provider, ITtsAudioCache cache, int maxSegmentsPerBatch)
+        : this(provider, cache, maxSegmentsPerBatch, null, null) { }
+
+    public TtsPreGenerator(TtsEngineRegistry registry, ITtsAudioCache cache, int maxSegmentsPerBatch)
+    {
+        ArgumentNullException.ThrowIfNull(registry);
+        var snapshot = registry.Snapshot;
+        if (!registry.TryGet(snapshot.EngineId, out var configuration) || configuration is null)
+            throw new InvalidOperationException("????????????");
+        Initialize(configuration.Provider, cache, maxSegmentsPerBatch, registry, snapshot.Revision);
+    }
+
+    private TtsPreGenerator(ITtsProvider provider, ITtsAudioCache cache, int maxSegmentsPerBatch,
+        TtsEngineRegistry? registry, EngineRevision? registryRevision)
+    {
+        Initialize(provider, cache, maxSegmentsPerBatch, registry, registryRevision);
+    }
+
+    private void Initialize(ITtsProvider provider, ITtsAudioCache cache, int maxSegmentsPerBatch,
+        TtsEngineRegistry? registry, EngineRevision? registryRevision)
     {
         ArgumentNullException.ThrowIfNull(provider);
         ArgumentNullException.ThrowIfNull(cache);
@@ -23,7 +44,11 @@ public sealed class TtsPreGenerator
         _cache = cache;
         _maxSegmentsPerBatch = maxSegmentsPerBatch;
         _engineId = provider.EngineId;
-        _revision = provider.Revision;
+        _providerRevision = provider.Revision;
+        _registry = registry;
+        _registryRevision = registryRevision;
+        if (registry is not null && registryRevision is null)
+            throw new ArgumentNullException(nameof(registryRevision));
     }
 
     public TtsPreparationSnapshot Snapshot => Volatile.Read(ref _snapshot);
@@ -104,13 +129,13 @@ public sealed class TtsPreGenerator
         {
             EnsureCurrent(token);
             var outcome = await _provider.SynthesizeAsync(new(text.Normalize(NormalizationForm.FormC), settings.VoiceId, settings.Language,
-                settings.Rate, settings.Pitch, settings.Volume, _revision), token);
+                settings.Rate, settings.Pitch, settings.Volume, _providerRevision), token);
             generated = outcome.Result?.Asset;
             EnsureCurrent(token);
             if (!outcome.IsReady)
                 result = new(outcome.Status == OperationStatus.Succeeded ? OperationStatus.Failed : outcome.Status,
                     null, "本机合成未完成，请检查引擎后重试。");
-            else if (outcome.Result!.EngineRevision != _revision || outcome.Result.EngineId != _engineId || generated!.EngineId != _engineId)
+            else if (outcome.Result!.EngineRevision != _providerRevision || outcome.Result.EngineId != _engineId || generated!.EngineId != _engineId)
                 result = new(OperationStatus.Cancelled, null, "忽略旧引擎或标识不一致的合成结果。");
             else
             {
@@ -140,8 +165,14 @@ public sealed class TtsPreGenerator
     private void EnsureCurrent(CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        if (_provider.Revision != _revision || _provider.EngineId != _engineId)
-            throw new OperationCanceledException("引擎版本已过期。");
+        if (_provider.Revision != _providerRevision || _provider.EngineId != _engineId)
+            throw new OperationCanceledException("????????");
+        if (_registry is not null)
+        {
+            var snapshot = _registry.Snapshot;
+            if (snapshot.EngineId != _engineId || snapshot.Revision != _registryRevision)
+                throw new OperationCanceledException("????????????");
+        }
     }
 
     private void Publish(TtsPreparationState state, IEnumerable<PreparedTtsSegment> segments, int required, string? detail = null) =>

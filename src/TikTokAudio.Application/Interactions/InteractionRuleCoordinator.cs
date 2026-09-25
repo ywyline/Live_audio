@@ -202,7 +202,13 @@ public sealed class InteractionRuleCoordinator
                     discards.Enqueue(new(candidate, "Replaced"));
                     return new(InteractionAdmissionStatus.Accepted, candidate);
                 }
-                foreach (var previous in waitingSameKind) DiscardUnsafe(previous, "Replaced");
+                foreach (var previous in waitingSameKind)
+                {
+                    // A submitted text response must retain its completion lease, but it
+                    // must not keep an older, unstarted voice reply ahead of the new comment.
+                    if (previous.TextStarted) Release(previous.Candidate, InteractionChannel.Voice);
+                    else DiscardUnsafe(previous, "Replaced");
+                }
             }
             pending.Add(item);
             return new(InteractionAdmissionStatus.Accepted, candidate);
@@ -256,7 +262,17 @@ public sealed class InteractionRuleCoordinator
             if (item is null || !EligibleUnsafe(candidate, channel)) return false;
             return channel == InteractionChannel.Voice
                 ? ReferenceEquals(voiceLease, item) && !item.VoiceStarted
-                : ReferenceEquals(textLease, item);
+                : ReferenceEquals(textLease, item) && !item.TextStarted;
+        }
+    }
+
+    public bool BeginTextSend(InteractionCandidate candidate)
+    {
+        lock (gate)
+        {
+            if (!CanPlay(candidate, InteractionChannel.Text)) return false;
+            textLease!.TextStarted = true;
+            return true;
         }
     }
 
@@ -296,6 +312,7 @@ public sealed class InteractionRuleCoordinator
             textCompletedAt = clock.Now.Ticks;
             if (candidate.RuleId is not null) ruleTextCompletedAt[candidate.RuleId] = clock.Now.Ticks;
             textLease = null;
+            item.TextStarted = false;
             RemoveFinishedUnsafe(item);
         }
     }
@@ -334,12 +351,25 @@ public sealed class InteractionRuleCoordinator
             else
             {
                 item.TextPending = false;
+                item.TextStarted = false;
                 if (ReferenceEquals(textLease, item)) textLease = null;
             }
             if (!item.VoicePending && !item.TextPending && !ReferenceEquals(voiceLease, item) && !ReferenceEquals(textLease, item))
                 DiscardUnsafe(item, "Released");
         }
     }
+    /// <summary>Clears the text channel, including cooldown-blocked candidates, without resetting voice or cooldowns.</summary>
+    public int ClearTextPending()
+    {
+        lock (gate)
+        {
+            var candidates = pending.Where(item => item.TextPending || ReferenceEquals(textLease, item))
+                .Select(item => item.Candidate).ToArray();
+            foreach (var candidate in candidates) Release(candidate, InteractionChannel.Text);
+            return candidates.Length;
+        }
+    }
+
     public IReadOnlyList<InteractionDiscard> DrainDiscards()
     {
         lock (gate)
@@ -376,7 +406,7 @@ public sealed class InteractionRuleCoordinator
     private void RemoveExpiredUnsafe()
     {
         foreach (var item in pending.ToArray())
-            if (!item.VoiceStarted && !FreshUnsafe(item)) DiscardUnsafe(item, "Expired");
+            if (!item.VoiceStarted && !item.TextStarted && !FreshUnsafe(item)) DiscardUnsafe(item, "Expired");
     }
 
     private void DiscardUnsafe(Pending item, string reason)
@@ -456,5 +486,6 @@ public sealed class InteractionRuleCoordinator
         public bool VoicePending { get; set; } = candidate.VoiceEnabled;
         public bool TextPending { get; set; } = candidate.TextEnabled;
         public bool VoiceStarted { get; set; }
+        public bool TextStarted { get; set; }
     }
 }

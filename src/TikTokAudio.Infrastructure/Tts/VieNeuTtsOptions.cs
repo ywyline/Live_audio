@@ -4,6 +4,7 @@ namespace TikTokAudio.Infrastructure.Tts;
 
 public sealed class VieNeuTtsOptions
 {
+    public string EngineId { get; init; } = "vieneu-v3-turbo";
     public required Uri Endpoint { get; init; }
     public required string OutputDirectory { get; init; }
     public string? ApiKey { get; init; }
@@ -12,6 +13,10 @@ public sealed class VieNeuTtsOptions
 
     internal VieNeuTtsOptions ValidateAndCopy()
     {
+        if (string.IsNullOrWhiteSpace(EngineId) || EngineId.Length > 128 || EngineId.Any(char.IsControl))
+        {
+            throw new ArgumentException("TTS ????????????", nameof(EngineId));
+        }
         if (Endpoint is null || !Endpoint.IsAbsoluteUri ||
             (Endpoint.Scheme != Uri.UriSchemeHttp && Endpoint.Scheme != Uri.UriSchemeHttps) ||
             Endpoint.UserInfo.Length != 0 || Endpoint.Query.Length != 0 || Endpoint.Fragment.Length != 0 ||
@@ -46,6 +51,7 @@ public sealed class VieNeuTtsOptions
 
         return new VieNeuTtsOptions
         {
+            EngineId = EngineId,
             // Avoid DNS/proxy resolution for the localhost alias.
             Endpoint = isLocalhost ? new UriBuilder(Endpoint) { Host = "127.0.0.1" }.Uri : Endpoint,
             OutputDirectory = Path.GetFullPath(OutputDirectory),

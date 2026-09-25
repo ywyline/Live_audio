@@ -233,11 +233,15 @@ public sealed class T062InteractionPlaybackTests
         public async Task<InteractionPlaybackUpdate> Until(Func<bool> predicate)
         {
             InteractionPlaybackUpdate update = new(new(OperationResult.Succeeded(), [], []), []);
-            for (var i = 0; i < 1000 && !predicate(); i++)
+            // A yield count cannot guarantee that thread-pool preparation has completed.
+            // Only guard a stalled test with real time; business time remains on FakeClock.
+            using var readinessTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            while (!predicate())
             {
-                update = await Coordinator.PumpAsync();
+                readinessTimeout.Token.ThrowIfCancellationRequested();
+                update = await Coordinator.PumpAsync(readinessTimeout.Token);
                 LastSettlement = update;
-                await Task.Yield();
+                if (!predicate()) await Task.Delay(1, readinessTimeout.Token);
             }
             Assert.True(predicate(), "Expected interaction transition did not occur.");
             return update;
@@ -338,7 +342,6 @@ public sealed class T062InteractionPlaybackTests
         public void Complete() { State = PlaybackState.Idle; CurrentCursor = new AudioCursor(100, 24000); }
     }
 }
-
 
 
 

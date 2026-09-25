@@ -1,32 +1,77 @@
 <Window x:Class="TikTokAudio.Desktop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="{StaticResource AppTitle}"
-        Width="800" Height="480"
-        MinWidth="640" MinHeight="360"
-        WindowStartupLocation="CenterScreen"
-        Background="#F5F7FA"
-        FontFamily="Microsoft YaHei UI"
-        UseLayoutRounding="True">
-    <Grid Margin="40">
-        <Border Padding="32"
-                Background="White"
-                BorderBrush="#DFE5EC"
-                BorderThickness="1"
-                CornerRadius="12"
-                VerticalAlignment="Center">
-            <StackPanel>
-                <TextBlock Text="{StaticResource WelcomeHeading}"
-                           FontSize="28"
-                           FontWeight="SemiBold"
-                           Foreground="#172B4D"
-                           TextWrapping="Wrap" />
-                <TextBlock Text="{StaticResource WelcomeDescription}"
-                           Margin="0,16,0,0"
-                           FontSize="16"
-                           Foreground="#4A596D"
-                           TextWrapping="Wrap" />
-            </StackPanel>
+        Title="TikTok Live Audio Tool" Width="1240" Height="780" MinWidth="980" MinHeight="640"
+        WindowStartupLocation="CenterScreen" Background="#F5F7FA" FontFamily="Segoe UI" UseLayoutRounding="True">
+    <Grid Margin="24">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <Border Grid.Row="0" Padding="16" Margin="0,0,0,16" Background="#173B6C" CornerRadius="10">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Left">
+                    <TextBlock Text="Live Audio Workbench" Foreground="White" FontSize="25" FontWeight="SemiBold" />
+                    <TextBlock Text="Local console - base playback, material, engine and device" Foreground="#D7E6FA" Margin="0,4,0,0" />
+                </StackPanel>
+                <TextBlock DockPanel.Dock="Right" Text="Simulation; no real live-room operation" Foreground="#FFE7A3" FontWeight="Bold" VerticalAlignment="Center" FontSize="16" />
+            </DockPanel>
         </Border>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <GroupBox Header="Base mode" Padding="12" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Select exactly one base voice mode" FontWeight="SemiBold" />
+                            <ComboBox Margin="0,8,0,0" SelectedValue="{Binding SelectedMode, Mode=TwoWay}" SelectedValuePath="Tag" IsEnabled="{Binding CanChangeMode}">
+                                <ComboBoxItem Content="Pre-recorded material" Tag="PreRecorded" />
+                                <ComboBoxItem Content="Local TXT / TTS" Tag="TtsScript" />
+                            </ComboBox>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Material directory" Padding="12" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBox Text="{Binding MaterialDirectory, UpdateSourceTrigger=PropertyChanged}" ToolTip="Local material root" />
+                            <Button Content="Load and preflight material" Command="{Binding LoadMaterialsCommand}" HorizontalAlignment="Left" Margin="0,8,0,0" Padding="14,5" />
+                            <TextBlock Text="{Binding MaterialSummary}" Margin="0,8,0,0" TextWrapping="Wrap" Foreground="#4A596D" />
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Local TTS engine" Padding="12" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <ComboBox Grid.Column="0" ItemsSource="{Binding EngineOptions}" SelectedItem="{Binding SelectedEngineId, Mode=TwoWay}" />
+                            <Button Grid.Column="1" Content="Check configuration" Command="{Binding TestEngineCommand}" Margin="8,0,0,0" Padding="12,4" />
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="Audio device" Padding="12" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <ComboBox Grid.Column="0" ItemsSource="{Binding DeviceOptions}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding SelectedDeviceId, Mode=TwoWay}" />
+                            <Button Grid.Column="1" Content="Audition" Command="{Binding AuditionDeviceCommand}" Margin="8,0,0,0" Padding="12,4" />
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="Effects" Padding="12">
+                        <StackPanel>
+                            <CheckBox Content="Enable pre-recorded effects (speed / pitch)" IsChecked="{Binding EffectsEnabled, Mode=TwoWay}" />
+                            <Grid Margin="0,10,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="90"/><ColumnDefinition Width="*"/><ColumnDefinition Width="60"/></Grid.ColumnDefinitions><TextBlock Text="Speed" VerticalAlignment="Center" /><Slider Grid.Column="1" Minimum="0.5" Maximum="2" Value="{Binding Speed, Mode=TwoWay}" IsEnabled="{Binding EffectsEnabled}" /><TextBlock Grid.Column="2" Text="{Binding Speed, StringFormat={}{0:F2}x}" HorizontalAlignment="Right" /></Grid>
+                            <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="90"/><ColumnDefinition Width="*"/><ColumnDefinition Width="60"/></Grid.ColumnDefinitions><TextBlock Text="Pitch" VerticalAlignment="Center" /><Slider Grid.Column="1" Minimum="-6" Maximum="6" Value="{Binding PitchSemitones, Mode=TwoWay}" IsEnabled="{Binding EffectsEnabled}" /><TextBlock Grid.Column="2" Text="{Binding PitchSemitones, StringFormat={}{0:F1} st}" HorizontalAlignment="Right" /></Grid>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </ScrollViewer>
+            <Border Grid.Column="2" Background="White" BorderBrush="#DFE5EC" BorderThickness="1" CornerRadius="10" Padding="18">
+                <StackPanel>
+                    <TextBlock Text="Current playback" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding PlaybackStateText}" FontSize="28" FontWeight="Bold" Foreground="#176B87" Margin="0,8,0,0" />
+                    <ProgressBar Value="{Binding Progress, Mode=OneWay}" Maximum="1" Height="12" Margin="0,14,0,4" />
+                    <TextBlock Text="{Binding ProgressText}" HorizontalAlignment="Right" Foreground="#4A596D" />
+                    <Separator Margin="0,16,0,16" />
+                    <TextBlock Text="{Binding CurrentProductText}" Margin="0,4" /><TextBlock Text="{Binding CurrentGroupText}" Margin="0,4" /><TextBlock Text="{Binding CurrentClipText}" Margin="0,4" />
+                    <TextBlock Text="{Binding MaterialSummary}" Margin="0,16,0,0" TextWrapping="Wrap" Foreground="#4A596D" />
+                    <Border Background="#FFF4D6" Padding="10" Margin="0,16,0,0" CornerRadius="6"><TextBlock Text="Simulation mode: no live-room connection, text dispatch, product action, real TTS call, or real audio device." TextWrapping="Wrap" Foreground="#6D5312" /></Border>
+                    <TextBlock Text="{Binding StatusText}" Margin="0,16,0,0" TextWrapping="Wrap" />
+                    <UniformGrid Columns="2" Margin="0,20,0,0"><Button Content="Start" Command="{Binding StartCommand}" Margin="0,0,6,6" Padding="10,7" /><Button Content="Pause all" Command="{Binding PauseCommand}" Margin="6,0,0,6" Padding="10,7" /><Button Content="Resume" Command="{Binding ResumeCommand}" Margin="0,6,6,0" Padding="10,7" /><Button Content="Stop" Command="{Binding StopCommand}" Margin="6,6,0,0" Padding="10,7" /></UniformGrid>
+                    <Button Content="Emergency stop" Command="{Binding EmergencyStopCommand}" Margin="0,12,0,0" Padding="10,8" Background="#B42318" Foreground="White" />
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

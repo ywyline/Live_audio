@@ -17,6 +17,7 @@ public sealed class AudioPlaybackScheduler
     private IBasePlaybackPlan planner;
     private readonly IAudioOutput output;
     private readonly IClock clock;
+    private readonly PlaybackEffectOptions effectOptions;
     private readonly int capacity;
     private readonly SemaphoreSlim commands = new(1, 1);
     private readonly object sync = new();
@@ -37,7 +38,8 @@ public sealed class AudioPlaybackScheduler
     private string? cleanupFailure;
     private Task<OperationResult> stopBarrier = Task.FromResult(OperationResult.Succeeded());
 
-    public AudioPlaybackScheduler(IBasePlaybackPlan planner, IAudioOutput output, IClock clock, int capacity = 22)
+    public AudioPlaybackScheduler(IBasePlaybackPlan planner, IAudioOutput output, IClock clock, int capacity = 22,
+        PlaybackEffectOptions? effectOptions = null)
     {
         ArgumentNullException.ThrowIfNull(planner);
         ArgumentNullException.ThrowIfNull(output);
@@ -47,6 +49,8 @@ public sealed class AudioPlaybackScheduler
         this.output = output;
         this.clock = clock;
         this.capacity = capacity;
+        this.effectOptions = effectOptions ?? new PlaybackEffectOptions();
+        this.effectOptions.Validate();
     }
 
     public string? Detail { get { lock (sync) return state == PlaybackState.Preparing && baseItem is null ? planner.Detail ?? "等待合成。" : null; } }
@@ -581,7 +585,12 @@ public sealed class AudioPlaybackScheduler
             item = baseItem;
             request = new(item.Asset, baseCursor);
         }
-        var result = await CallOutputAsync(epoch, token => output.PlayAsync(request, token)).ConfigureAwait(false);
+        var effectSelection = PlaybackEffects.Select(item, effectOptions);
+        var result = await CallOutputAsync(epoch, token => effectSelection == PlaybackEffectSelection.Bypass
+            ? output.PlayAsync(request, token)
+            : output is IEffectAudioOutput effectOutput
+                ? effectOutput.PlayWithEffectsAsync(request, effectSelection, token)
+                : Task.FromResult(OperationResult.Unsupported("The selected audio output does not support effects."))).ConfigureAwait(false);
         OperationResult<IReadOnlyList<ProductBoundary>> acknowledgement;
         lock (sync)
         {

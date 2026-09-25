@@ -190,6 +190,39 @@ public sealed class TtsPreparationTests
     }
 
     [Fact]
+    public async Task RegistryRevisionChangingInFlightInvalidatesReturnedAudio()
+    {
+        var entered = Signal();
+        var release = Signal();
+        var first = new FakeProvider
+        {
+            Handler = async (_, token) =>
+            {
+                entered.SetResult();
+                await release.Task.WaitAsync(token);
+                return Success("late");
+            }
+        };
+        var second = new FakeProvider { EngineId = "other-local" };
+        var registry = new TtsEngineRegistry([
+            new TtsEngineConfiguration(first.EngineId, first),
+            new TtsEngineConfiguration(second.EngineId, second)], first.EngineId);
+        var cache = new FakeCache();
+        var preparation = new TtsPreGenerator(registry, cache, 1)
+            .PrepareAsync(Document("text"), 0, 1, Settings, default);
+
+        await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(OperationStatus.Succeeded, registry.Switch(second.EngineId).Status);
+        release.SetResult();
+
+        var result = await preparation;
+        Assert.Equal(OperationStatus.Cancelled, result.Status);
+        Assert.Equal(0, cache.Stores);
+        Assert.Single(cache.Discarded);
+        Assert.Empty(result.Snapshot.Segments);
+    }
+
+    [Fact]
     public async Task ProviderRevisionChangingInFlightInvalidatesReturnedAudio()
     {
         var provider = new FakeProvider();
@@ -320,7 +353,7 @@ public sealed class TtsPreparationTests
 
     private sealed class FakeProvider : ITtsProvider
     {
-        public string EngineId => "fake-local";
+        public string EngineId { get; init; } = "fake-local";
         public EngineRevision Revision { get; set; } = new(1);
         public int Calls { get; private set; }
         public Func<TtsSynthesisRequest, CancellationToken, Task<TtsSynthesisOutcome>> Handler { get; set; } =

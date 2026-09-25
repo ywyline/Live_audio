@@ -26,3 +26,36 @@
 ## 2026-09-24 复核更正
 
 进程内注册provider实例已实现；外部配置地址读取/provider装配、全链代际失效、自动等待当前片段结束后切换尚未完成。四项注册器测试不能证明这些验收条件，T043从DONE更正为REVIEW。保留源码及测试，不在T050夹带修复。T044按用户要求DEFERRED，现有ITtsProvider扩展接口保留。上述181项测试证据仍有效，但不代表T043全验收。
+
+## 2026-09-25 复核补齐与收口
+
+本轮补齐并验证此前复核中登记的两个缺口：
+
+- 新增受限外部 JSON 配置读取。配置仅支持已知 `vieneu` provider，读取 `engineId`、本机回环 `baseAddress`、输出目录、默认音色、超时和输出大小上限；地址必须是 `127.0.0.1` 或 `localhost`，不会读取凭证、下载模型或调用真实服务。加载器将现有 `VieNeuTtsOptions` 校验结果转换为 `VieNeuTtsProvider`，再装配到 `TtsEngineRegistry`。
+- 互动预生成路径改用 registry-aware `TtsPreGenerator`。生成开始时同时捕获 registry revision 与 provider revision；registry 切换或旧 provider 迟到时取消/丢弃结果，不提交旧缓存。直接传入 provider 的兼容构造仍保留。
+
+专属与相关验证命令及结果：
+
+```text
+dotnet test tests/TikTokAudio.Application.Tests/TikTokAudio.Application.Tests.csproj -c Debug --no-restore --filter "FullyQualifiedName~TtsPreparationTests|FullyQualifiedName~TtsEngineRegistryTests"
+35/35 通过
+
+dotnet test tests/TikTokAudio.Integration.Tests/TikTokAudio.Integration.Tests.csproj -c Debug --no-restore --filter "FullyQualifiedName~T043ConfigurationTests"
+2/2 通过
+
+dotnet test tests/TikTokAudio.Application.Tests/TikTokAudio.Application.Tests.csproj -c Debug --no-restore
+567/567 通过
+
+dotnet test tests/TikTokAudio.Integration.Tests/TikTokAudio.Integration.Tests.csproj -c Debug --no-restore
+385/385 通过
+
+dotnet build TikTokAudio.slnx -c Debug --no-restore
+退出 0；0 warnings；0 errors
+
+git diff --check
+退出 0
+```
+
+测试使用 Fake provider、临时 JSON 和临时本地输出目录；本轮未访问真实网络、VieNeu 服务、TTS、音频设备、账号、凭证或平台。T044 第二真实引擎仍按用户指示 `DEFERRED`，因此本报告只证明配置装配和模拟/本地代码代际隔离，不宣称 AC-06 的双真实引擎验收完成。
+
+T043 现可从 `ACTIVE` 收口为 `DONE`。下一依赖满足的最小 P0 切片为 T081；T090 仍按任务依赖和顺序不启动。

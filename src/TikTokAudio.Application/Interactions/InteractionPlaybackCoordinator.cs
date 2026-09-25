@@ -1,4 +1,4 @@
-﻿using TikTokAudio.Application.Contracts;
+using TikTokAudio.Application.Contracts;
 using TikTokAudio.Application.Events;
 using TikTokAudio.Application.Playback;
 using TikTokAudio.Application.Tts;
@@ -173,7 +173,7 @@ public sealed class InteractionPlaybackCoordinator
             candidate.RenderedText,
             segmenterVersion,
             [new TtsScriptSegment(0, candidate.RenderedText, null)]);
-        var generator = new TtsPreGenerator(provider, cache, 1);
+        var generator = new TtsPreGenerator(engines, cache, 1);
         var prepared = await generator.PrepareAsync(document, 0, 1, settings, cancellationToken).ConfigureAwait(false);
         if (prepared.Status != OperationStatus.Succeeded || !prepared.Snapshot.CanStartPlayback)
             return new(prepared.Status, null, prepared.Detail ?? "互动语音尚未准备好。");

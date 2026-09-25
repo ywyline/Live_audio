@@ -18,7 +18,7 @@ public sealed class VieNeuTtsProvider : ITtsProvider, IDisposable
     private readonly CancellationTokenSource _lifetime = new();
     private int _disposed;
 
-    public string EngineId => ModelId;
+    public string EngineId => _options.EngineId;
     public EngineRevision Revision { get; }
 
     public VieNeuTtsProvider(VieNeuTtsOptions options, EngineRevision revision)

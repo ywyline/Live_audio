@@ -1,12 +1,13 @@
 using System.Runtime.Versioning;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
+using TikTokAudio.Application.Playback;
 using TikTokAudio.Domain;
 
 namespace TikTokAudio.Infrastructure.Audio;
 
 [SupportedOSPlatform("windows")]
-public sealed class NAudioSessionFactory : IAudioSessionFactory
+public sealed class NAudioSessionFactory : IEffectAudioSessionFactory
 {
     private readonly AudioOutputOptions options;
     private readonly SemaphoreSlim capacity;
@@ -30,6 +31,20 @@ public sealed class NAudioSessionFactory : IAudioSessionFactory
     }
 
     public async Task<IAudioPlaybackSession> PrepareAsync(AudioPlaybackRequest request, CancellationToken cancellationToken)
+        => await PrepareCoreAsync(request, null, cancellationToken).ConfigureAwait(false);
+
+    public bool Supports(PlaybackEffectSelection selection) => EffectWaveProcessor.Supports(selection);
+
+    public Task<IAudioPlaybackSession> PrepareWithEffectsAsync(AudioPlaybackRequest request,
+        PlaybackEffectSelection selection, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+        if (!Supports(selection)) throw new NotSupportedException("The selected effects cannot be rendered with source-accurate cursor mapping.");
+        return PrepareCoreAsync(request, selection, cancellationToken);
+    }
+
+    private async Task<IAudioPlaybackSession> PrepareCoreAsync(AudioPlaybackRequest request,
+        PlaybackEffectSelection? selection, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Asset);
@@ -39,7 +54,11 @@ public sealed class NAudioSessionFactory : IAudioSessionFactory
         try
         {
             file = await AudioFilePreparation.PrepareAsync(options, request.Asset.Path, cancellationToken).ConfigureAwait(false);
-            if (request.StartAt.SourceSampleOffset < 0 || request.StartAt.SourceSampleOffset > file.LengthSamples ||
+            var frameMap = new EffectFrameMap(file.LengthSamples, file.LengthSamples);
+            if (selection is not null)
+                frameMap = await EffectWaveProcessor.ProcessAsync(file.Path, selection,
+                    options.MaxDecodedBytes, cancellationToken).ConfigureAwait(false);
+            if (request.StartAt.SourceSampleOffset < 0 || request.StartAt.SourceSampleOffset > frameMap.SourceFrames ||
                 (request.StartAt.SampleRate is int rate && rate != file.SampleRate) ||
                 (request.StartAt.SourceSampleOffset != 0 && request.StartAt.SampleRate is null))
                 throw new ArgumentException("The source cursor is outside the file or uses a different sample rate.", nameof(request));
@@ -47,7 +66,8 @@ public sealed class NAudioSessionFactory : IAudioSessionFactory
             IAudioPlaybackSession session = await Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var prepared = new WasapiPlaybackSession(options, owned, request.StartAt.SourceSampleOffset, () => capacity.Release());
+                var prepared = new WasapiPlaybackSession(options, owned, frameMap,
+                    request.StartAt.SourceSampleOffset, () => capacity.Release());
                 if (cancellationToken.IsCancellationRequested)
                 {
                     // Ownership transfers only after this delegate returns successfully.
@@ -72,6 +92,7 @@ public sealed class NAudioSessionFactory : IAudioSessionFactory
         private readonly object gate = new();
         private readonly AudioOutputOptions options;
         private readonly PreparedAudioFile file;
+        private readonly EffectFrameMap frameMap;
         private readonly Action releaseCapacity;
         private readonly MMDevice device;
         private WasapiOut? output;
@@ -85,10 +106,12 @@ public sealed class NAudioSessionFactory : IAudioSessionFactory
         private WasapiOut? fadedOutput;
         private float[]? volumesBeforeFade;
 
-        public WasapiPlaybackSession(AudioOutputOptions options, PreparedAudioFile file, long start, Action releaseCapacity)
+        public WasapiPlaybackSession(AudioOutputOptions options, PreparedAudioFile file,
+            EffectFrameMap frameMap, long start, Action releaseCapacity)
         {
             this.options = options;
             this.file = file;
+            this.frameMap = frameMap;
             this.releaseCapacity = releaseCapacity;
             cursor = start;
             using var enumerator = new MMDeviceEnumerator();
@@ -107,7 +130,7 @@ public sealed class NAudioSessionFactory : IAudioSessionFactory
         }
 
         public int SampleRate => file.SampleRate;
-        public long LengthSamples => file.LengthSamples;
+        public long LengthSamples => frameMap.SourceFrames;
         public event EventHandler<AudioSessionStoppedEventArgs>? Stopped;
         public long PositionSamples
         {
@@ -228,12 +251,13 @@ public sealed class NAudioSessionFactory : IAudioSessionFactory
             try
             {
                 newReader = new WaveFileReader(file.Path);
-                newReader.Position = checked(cursor * newReader.WaveFormat.BlockAlign);
+                long renderedStart = frameMap.SourceToRendered(cursor);
+                newReader.Position = checked(renderedStart * newReader.WaveFormat.BlockAlign);
                 newOutput = new WasapiOut(device, AudioClientShareMode.Shared, true, options.LatencyMilliseconds);
                 long currentGeneration = ++generation;
                 newOutput.PlaybackStopped += (_, args) => QueueStopped(currentGeneration, args.Exception);
                 newOutput.Init(newReader);
-                outputStart = cursor;
+                outputStart = renderedStart;
                 reader = newReader;
                 output = newOutput;
             }
@@ -254,7 +278,8 @@ public sealed class NAudioSessionFactory : IAudioSessionFactory
             WaveFormat format = output.OutputWaveFormat;
             long bytes = output.GetPosition();
             long rendered = (long)((decimal)bytes * SampleRate / format.AverageBytesPerSecond);
-            cursor = Math.Clamp(Math.Max(cursor, outputStart + rendered), 0, LengthSamples);
+            long renderedCursor = Math.Clamp(outputStart + rendered, 0, frameMap.RenderedFrames);
+            cursor = Math.Clamp(Math.Max(cursor, frameMap.RenderedToSource(renderedCursor)), 0, LengthSamples);
         }
 
         private void QueueStopped(long callbackGeneration, Exception? error) =>

@@ -1,10 +1,44 @@
-# 可集成成果与版本记录
+﻿# 可集成成果与版本记录
 
-文档基线：0.1.0｜需求版本：0.1.1｜记录日期：2026-09-24。
+文档基线：0.1.0｜需求版本：0.1.1｜记录日期：2026-09-25。
 
 本文件只记录已经形成可集成成果的开发/文档变更。进行中过程、失败尝试和待整合工作者成果放在 handoff；每轮实施都要更新交接，但没有成果时不能制造一条“已完成”历史。
 
 当前版本 0.1.0 是文档基线版本，不是可运行应用版本。后续条目区分“文档版本”和“应用版本”；两者不必同步增长。新记录置于最上方，保留旧记录，不改写历史结果。
+
+## 2026-09-25 — S21/T100 离线整链回归完成
+
+- T100 DONE：新增40项跨模块回归，实际事件/去重/规则/播放/计划/商品/文字/SQLite组件组合验证；只新增测试接线，复用四份T021内存夹具，未改生产逻辑或提前实现后续恢复/UI/真实平台。
+- 专属40/40、相关/全949/949通过，Build零警告错误，静态/空白检查通过；报告docs/T100-offline-regression-report.md提供AC-01…05、07…11模拟证据映射及限制。成功结束才完成、K/V/W、迟到结果清理、源位置/标记、插播续显、Unknown持久化及取消落库幂等移交均验证。
+- 没有真实网络/TTS/设备/凭证/平台或用户库操作；不将模拟逻辑当作真实时延/平台成功/完整崩溃恢复证据。首次断言分析器警告已修正，未抑制；工作者成果已整合，无commit/push，保留全部既有修改/旧worktree。
+- 重新核对无下一READY切片，停止交接；T043 REVIEW、T030 BLOCKED、T044 DEFERRED保持。建议先确认重新安排T043既有缺口复核/补齐，不擅自越过依赖。
+
+## 2026-09-25 — S20/T080 本地持久化完成
+
+- T080 DONE：冻结仓储13个方法、SQLite事务迁移/只读完整性预检、版本化本地JSON、互动完成/检查点/缓存元数据/不可变动作账本；开发/用户目录隔离、日志轮转清理与Windows凭证安全边界完成，不自动恢复外部副作用。
+- 新增137项专属测试，专属137/137、相关/全909/909通过；Build零警告错误，静态/空白检查通过。迁移失败与坏数据页不覆盖库、Unicode/UTC、限额/参数化/取消/背压、硬链接/日志精确清理及fake凭证已验证，报告docs/T080-persistence-report.md。
+- 固定Microsoft.Data.Sqlite10.0.9及SQLitePCLRaw.bundle_e_sqlite3 2.1.13，解决初次restore传递库NU1903；最终restore无警告、审计无已知漏洞，不抑制审计。未改业务契约/调度/TTS/音频/UI/平台。
+- 仅合成临时数据和fake凭证，真实凭证/用户库/平台未访问；不宣称符号链接实测、恶意TOCTOU防御或恢复编排已完成。全部既有修改/旧worktree保留，无commit/push；下一最小READY为T100，本轮未启动，T043 REVIEW/T044 DEFERRED保持。
+
+## 2026-09-25 — S19/T073 文字调度完成
+
+- T073 DONE：应用层定时话术顺序/随机、窗口/启停、手动/定时/关键词单通道、有界队列、30秒默认总间隔与平台下限、过期和未来调度、Unknown不重发及有界结果账本完成。账本可移交，不宣称已持久化。
+- T061增加仅文字清理与已提交文字租约保护，保证新评论/TTL不会吞掉确认后的独立文字冷却，旧未开始语音仍正常替换，K/V/W独立。操作员文字保留价格符号/越南语NFC，不解析字面商品标记。
+- 新增127项专属测试；专属127/127、T061/T062相关219/219、全772/772通过；Build零警告错误，静态/空白检查通过。既有T062固定Yield等待竞态已仅在测试辅助方法修正，业务断言不变；完整过程见docs/T073-text-dispatch-report.md。
+- 全部为模拟测试，无真实网络/账号/平台/TTS/设备或数据库动作；三个工作者已整合，无commit/push，保留全部既有修改/旧worktree。下一最小READY为T080，本轮未启动；T043 REVIEW、T044 DEFERRED保持。
+
+## 2026-09-25 — S18/T070 商品目标状态机完成
+
+- T070 DONE：新增Application.Control商品目标协调器，复用冻结Contract；单一物理在途通道、确认后30秒续显、ProductEpoch及有界最新目标、批次优先级、超时/Unknown读回、受限拒绝重试、暂停/恢复/停止/换房隔离。
+- 新增65项专属测试，覆盖精确边界、迟到确认、非合作取消、并发Pump、同本地ID不同平台ID、旧响应和恢复屏障。修复既有T054测试的固定100次Yield等待竞态；仅调整测试等待方式，不改音频行为或验收断言。
+- 专属65/65、相关76/76、全方案645/645（Application439+Integration206）通过；Build零警告错误；静态与空白检查通过。精确命令、首轮失败/修正和模拟限制见 docs/T070-product-control-report.md。
+- 仅应用模拟层成果，无真实网络/平台/音频/TTS操作，不宣称AC-07/08/11真实端到端完成。保留未提交成果与旧worktree，无commit/push。下一最小READY为T073，本轮未启动；T043 REVIEW、T044 DEFERRED保持。
+
+## 2026-09-25 — S17/T054 效果与源进度验收完成
+
+- T054 DONE：用户明确“这个问题先通过，继续后续开发”，接受发音正确、可懂但机器感明显的自然度限制；不宣称达到真人自然度，也不新增声音克隆或训练。
+- 已有成果包括保守效果处理、真实输出接入、源位置进度与暂停恢复，以及三段真实试听证据。专属28/28、全方案580/580及Build零警告错误的既有证据见 docs/T054-effects-progress.md；本次仅确认验收，不重复生成音频。
+- 保留全部未提交修改与旧工作树，未commit/push。后续按依赖进入T070；T043 REVIEW、T044 DEFERRED不变。
 
 ## 2026-09-24 — S16/T062 启动
 
@@ -262,3 +296,28 @@ T040 remains ACTIVE. A read-only recheck confirmed SDK 10.0.401, the target Wind
 - ?????????????????????????????????4/4?Application359/359????548/548???Build 0??/0???`git diff --check`???
 - ????????UI?????????????T044 ?? DEFERRED????? READY ? T054???????
 - ?????????????stage/commit/push?
+
+## 2026-09-25 | S22/T043 重新安排
+
+用户回复“继续”，确认重新处理T043此前REVIEW中已记录的配置装配与EngineRevision联动缺口。T043登记为唯一ACTIVE；本轮只允许修改current_task列出的T043实现、专属测试、报告和治理文件。T044保持DEFERRED，不下载/安装第二引擎，不访问真实网络、TTS、设备、凭证或平台。实现和验收完成前不宣称T043 DONE。
+## 2026-09-25 S22/T043 收口
+
+- T043 DONE：补齐受限本机JSON配置读取与现有VieNeu provider装配，registry-aware预生成捕获registry/provider双revision并隔离切换期间迟到结果；保留直接provider构造兼容路径。
+- 专属35/35、配置2/2、Application567/567、Integration385/385通过；`dotnet build TikTokAudio.slnx -c Debug --no-restore`退出0、0 warnings/0 errors；`git diff --check`退出0。
+- 测试仅使用Fake provider、临时JSON和本地临时目录，未访问真实网络/TTS/设备/平台/账号/凭证。T044仍DEFERRED，不宣称AC-06双真实引擎完成。
+- T043完成后，按依赖→优先级→READY→顺序启用S23/T081；T090及T082仍不提前启动。
+
+## 2026-09-25 S23/T081
+
+- Completed local playback recovery: pre-recorded and TTS checkpoint capture, SQLite local recovery storage, shuffle/dedup/effect state preservation, engine revision retention, read-only preview, and explicit-confirmation planner restore.
+- Dedicated tests: Application 4/4 and Integration 3/3. Related full suites: Application 571/571 and Integration 388/388.
+- `dotnet build TikTokAudio.slnx -c Debug --no-restore` passed with 0 warnings and 0 errors. No real network, platform, account, credential, TTS, or audio-device operation was used.
+- T081 is DONE. T082 remains blocked by T034/T072/T074; T090 is the next dependency-ready slice and was not started.
+
+
+## 2026-09-25 S24/T090
+
+- Completed the local WPF console: base mode, material preflight, local engine/device selectors, effect controls, progress and playback stop controls.
+- Added a dedicated Desktop test project and 4/4 local ViewModel tests; solution tests passed Application 571/571, Integration 388/388 and Desktop 4/4.
+- `dotnet build TikTokAudio.slnx -c Debug --no-restore` passed with 0 warnings and 0 errors. Windows startup/close smoke passed after fixing a read-only Progress binding to OneWay.
+- The console remains simulation-only; no real platform, TTS, account, credential, network or audio-device operation was performed. T091/T101 are not started.

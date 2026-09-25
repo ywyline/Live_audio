@@ -1,8 +1,8 @@
-# 项目地图：任务、依赖与并行计划
+﻿# 项目地图：任务、依赖与并行计划
 
-文档基线：0.1.0｜需求版本：0.1.1｜更新日期：2026-09-24｜当前唯一切片：S16 / T062｜切片状态：DONE。
+Document baseline: 0.1.0 | Requirements: 0.1.1 | Updated: 2026-09-25 | Current slice: S24 / T090 | Status: DONE.
 
-这里记录全部计划，不授权 AI 一次性实现整张地图。只有 `current_task.md` 明确选中的切片可以执行。T000 文档基线、T010 最小工程、T020 共享契约与 T021 测试夹具已完成；后续任务按下表状态推进，T040/T041/T042已完成；T043复核待补，T044按用户指示暂缓，T050/T051/T052/T053完成；T055/T060/T061 DONE；T062 ACTIVE。READY 表示依赖已满足、可以安排，不表示已经分配或外部测试条件已具备。
+T081 is complete. T044 remains DEFERRED. S23/T081 is DONE; READY means dependencies are satisfied but does not authorize unrelated work. See current_task.md and handoff.md for the stop condition.
 
 ## 2026-09-23 main 整合与远程同步
 
@@ -77,7 +77,7 @@ T030–T032 的报告必须列出日期、账号/地区/客户端版本的非敏
 | T040 | 核对目标硬件、引擎许可证和本地运行条件；验证第一个真实越南语引擎、音色与耗时 | T000 | P0 | DONE | VieNeu 桌面0.18.3/SDK3.8.3已部署；14模型文件哈希通过；五条禁网合成与本机API合成/鉴权通过，P50 2.5368秒/P95 5.3269秒（小样本）；2026-09-24用户确认当前样音符合要求；首引擎验收完成，见 docs/T040-engine-report.md；后续T041已完成 |
 | T041 | 首个本地 loopback HTTP 引擎适配器：健康、音色、合成、取消、错误 | T020, T040 | P0 | DONE | REQ-TTS-001；仅本机请求，失败不转云端；引擎独立部署，适配器仅调用本机接口，不向 Live_audio EXE 嵌入引擎/推理环境/模型；Owner Integrator；50项模拟及真实C#合成通过，见docs/T041-adapter-report.md |
 | T042 | UTF-8 TXT 分段、标记边界、音频缓存、预生成与取消；失败缓存不命中 | T021, T041 | P0 | DONE | REQ-TTS-002/003/004；Owner Integrator；新增122项/全177项通过；导入/边界元数据/文件缓存/取消预生成完成，见docs/T042-preparation-report.md；实际播放边界仍属T055 |
-| T043 | 多引擎配置与切换，EngineRevision 隔离旧结果；当前音频播放完毕再换 | T042 | P0 | REVIEW | REQ-TTS-001/003；切换期间没有旧任务污染；已适配引擎通过配置地址/音色切换，无需重新编译或打包 EXE |
+| T043 | 多引擎配置与切换，EngineRevision 隔离旧结果；当前音频播放完毕再换 | T042 | P0 | DONE | Owner：Integrator；S22；配置装配、registry-aware 预生成代际隔离与竞态证据已完成；专属35/35、配置2/2、Application567/567、Integration385/385，Build零警告错误；验收报告：`docs/T043-engine-switching-report.md` |
 | T044 | 接入第二个真实本地引擎并完成往返切换、越南语试听、离线测试 | T040, T043 | P0 | DEFERRED | 用户2026-09-24明确暂缓，保留接口，恢复需重新安排；AC-06 完整引擎部分；两套模拟器不算完成；两个引擎均独立部署，记录同一 Live_audio 产物通过配置往返切换的实测证据 |
 
 T040/T044 若缺少硬件、模型或授权，记录所需最小输入；不得为“完成切换”强行使用云服务。引擎下载、安装、启动及模型来源以执行时获得的具体授权为准。
@@ -90,7 +90,7 @@ T040/T044 若缺少硬件、模型或授权，记录所需最小输入；不得�
 | T051 | 产品/子组目录导入、数字排序、素材校验、产品映射预检查 | T020 | P0 | DONE | REQ-PRE-001/CTRL-001；Owner Integrator；专属45/45、全269/269通过；build零警告错误；数字排序、空组/坏文件/重复编号/映射集中预检与产品阻止，见docs/T051-import-report.md |
 | T052 | 分组顺序、独立洗牌袋、循环、产品进入事件、计划修订号与恢复游标 | T021, T051 | P0 | DONE | Owner Integrator；AC-04逻辑恢复/AC-05模拟层；专属66/66、全335/335通过，build零警告错误；见docs/T052-planner-report.md |
 | T053 | 基础/互动音频调度、准备后抢占、优先级、恢复、暂停/紧急停止 | T021, T050, T052 | P0 | DONE | Owner Integrator；docs/T053-scheduler-report.md；AC-03/04/11本地调度逻辑，真实设备指标留T101 |
-| T054 | 可关闭的随机速度/音调/声道/EQ/环境音、效果种子保持、削波保护和试听 | T053 | P1 | READY | REQ-PRE-003；恢复效果一致，实际可懂度试听 |
+| T054 | 可关闭的随机速度/音调/声道/EQ/环境音、效果种子保持、削波保护和试听 | T053 | P1 | DONE | Owner Integrator；S17；确定性效果/源帧映射/旁路/削波保护/预览已实现；专属28/28、全580/580、Build零警告错误；用户2026-09-25明确“这个问题先通过，继续后续开发”，接受当前听感并保留机器感限制；见 docs/T054-effects-progress.md |
 | T055 | 将 TXT 音频接入基础计划，实现模式互斥、循环/一次播放、一次性标记 | T042, T053 | P0 | DONE | Owner Integrator；REQ-TTS-002/004及AC-03/04/09应用逻辑；专属51/51、全449/449通过，build零警告错误；docs/T055-tts-playback-report.md |
 
 ### 3.5 事件规则与互动插播
@@ -105,27 +105,27 @@ T040/T044 若缺少硬件、模型或授权，记录所需最小输入；不得�
 
 | ID | 任务 / 必须形成的成果 | 前置 | 优先级 | 状态 | 验收依据 |
 |---|---|---|---|---|---|
-| T070 | 商品目标状态机、单串行控制通道、30 秒续显、ProductEpoch、覆盖/取消/未知结果 | T021 | P0 | TODO | AC-07/08/11；可控时钟完成 0/30/60/80/90 秒场景 |
+| T070 | 商品目标状态机、单串行控制通道、30 秒续显、ProductEpoch、覆盖/取消/未知结果 | T021 | P0 | DONE | Owner Integrator；S18；专属65/65、相关76/76、全645/645，Build零警告错误；AC-07/08/11应用模拟层；0/30/60/80/90秒、非合作取消、超时读回、恢复隔离通过；docs/T070-product-control-report.md |
 | T071 | 经验证的真实商品/文字控制适配器；动作结果 Confirmed/Rejected/Unknown/Unsupported | T020, T032 | P0 | TODO | REQ-SRC-002、REQ-CTRL-003；不将页面点击等同成功 |
 | T072 | 联动 n-1 与商品 n、平台 ID 映射、TXT 标记/手动覆盖、互斥循环模式 | T070, T071, T052, T055 | P0 | TODO | REQ-CTRL-001…003；AC-07/08/09 |
-| T073 | 定时文字、关键词文字决策、有界发送队列、总间隔、结果账本与过期清理 | T021, T061 | P0 | TODO | REQ-CTRL-004；AC-10，无网络即可模拟验证 |
+| T073 | 定时文字、关键词文字决策、有界发送队列、总间隔、结果账本与过期清理 | T021, T061 | P0 | DONE | Owner Integrator；S19；专属127/127、相关219/219、全772/772，Build零警告错误；REQ-CTRL-004/AC-10应用模拟层；文字/语音租约隔离、未来定时与限流、Unknown和有界账本；docs/T073-text-dispatch-report.md |
 | T074 | 文字调度接真实控制器，确认/未知结果处理、断线暂停与重连不补发 | T071, T073 | P0 | TODO | AC-10/13 文字部分 |
 
 ### 3.7 数据、恢复与控制台
 
 | ID | 任务 / 必须形成的成果 | 前置 | 优先级 | 状态 | 验收依据 |
 |---|---|---|---|---|---|
-| T080 | SQLite 仓储、版本化迁移、缓存元数据、凭证边界、日志轮转、开发数据隔离 | T020 | P0 | TODO | REQ-DATA-001；新库/升级/事务失败路径 |
-| T081 | 本地播放检查点、洗牌袋、去重与引擎配置恢复；崩溃后仅预览 | T043, T055, T062, T080 | P0 | TODO | AC-01/04/11 本地部分；恢复不自动出声 |
+| T080 | SQLite 仓储、版本化迁移、缓存元数据、凭证边界、日志轮转、开发数据隔离 | T020 | P0 | DONE | Owner Integrator；S20；REQ-DATA-001；专属137/137、全909/909，Build零警告错误，依赖审计通过；只读坏库预检/迁移回滚/路径日志与fake凭证验证；docs/T080-persistence-report.md |
+| T081 | Local playback checkpoints, shuffle bags, deduplication and engine configuration recovery; preview only after crash | T043, T055, T062, T080 | P0 | DONE | Owner: Integrator; S23; dedicated Application 4/4, Integration 3/3, related Application 571/571, Integration 388/388, build 0 warnings/0 errors; docs/T081-recovery-report.md |
 | T082 | 场控动作恢复、连接状态核对、未知动作不重放、停止后的旧回调失效 | T034, T072, T074, T081 | P0 | TODO | AC-08/10/11 平台生命周期部分 |
-| T090 | 本地控制台：基础模式、素材、引擎、设备、效果、进度及停止操作 | T010, T043, T054, T055 | P1 | TODO | REQ-UI-001 本地部分；Windows 实际操作验收 |
+| T090 | Local console: base mode, material, engine, device, effects, progress and stop operations | T010, T043, T054, T055 | P1 | DONE | Owner: Integrator; S24; dedicated 4/4, solution Application 571/571 + Integration 388/388 + Desktop 4/4, Build 0 warnings/0 errors, Windows startup/close smoke passed; docs/T090-desktop-console-report.md |
 | T091 | 直播控制台：能力、事件、K/V/W、规则、商品映射/倒计时、定时文字、日志和故障 | T034, T062, T072, T074, T080, T090 | P1 | TODO | REQ-UI-001 完整；不支持的能力不能假启用 |
 
 ### 3.8 集成与交付
 
 | ID | 任务 / 必须形成的成果 | 前置 | 优先级 | 状态 | 验收依据 |
 |---|---|---|---|---|---|
-| T100 | 离线模拟整链回归：事件、模式、抢占、弹窗、文字和持久化，覆盖竞争及故障 | T021, T055, T062, T070, T073, T080 | P0 | TODO | AC-01…05、07…11 的模拟层证据 |
+| T100 | 离线模拟整链回归：事件、模式、抢占、弹窗、文字和持久化，覆盖竞争及故障 | T021, T055, T062, T070, T073, T080 | P0 | DONE | Owner Integrator；S21；专属40/40、全949/949，Build零警告错误、静态检查通过；AC-01…05、07…11仅模拟层，完整恢复/真实指标另验；docs/T100-offline-regression-report.md |
 | T101 | 目标机器真实本地 TTS/音频集成验收，含双引擎、延迟、恢复误差及人工试听 | T044, T054, T081, T090, T100 | P0 | TODO | AC-03/04/06；记录硬件与真实耗时，不混入平台结论 |
 | T102 | 授权测试房间整场联调，验证四类事件和商品/文字副作用，记录能力边界 | T032, T091, T082, T101 | P0 | TODO | AC-07…11/13 的平台层证据 |
 | T103 | 目标机器 4 小时连续运行，记录负载、内存、队列峰值、音频中断和平台错误 | T101, T102 | P0 | TODO | AC-12；模拟事件长跑与真实平台观察分别标记 |
@@ -242,3 +242,9 @@ T050 DONE，新增43项、全224/224测试通过；解决方案及独立smoke bu
 ## 2026-09-24 S12/T053完成（当前状态）
 
 本地基础/互动调度已整合：准备后短淡出插播、优先级、源游标恢复、一次边界、暂停/停止/换场与旧结果隔离；输出准备阶段TTL及终态通知竞态均有测试。专属51/51、淡出/输出相关26/26、实际输出内存集成2/2、全398/398通过，Build零警告错误，静态检查通过。证据docs/T053-scheduler-report.md。S12/T053 DONE；T055依赖T042/T053已DONE，P0优先于T054(P1)，为下一最小READY；T054同步READY但未分配。停止于当前切片，不提前接入TXT/UI。T043 REVIEW、T044 DEFERRED不变；无stage/commit/push。
+
+## 2026-09-25 S23/T081 closeout
+
+T081 DONE. Added local playback recovery coordinator, TTS checkpoint capture, and a SQLite ShuffleBag document adapter. Pre-recorded recovery preserves catalog fingerprint, checkpoint, shuffle bags, effect random state and consumed markers; TTS recovery preserves the checkpoint and engine snapshot. Recovery first validates and creates a read-only preview; only explicit confirmation restores an in-memory planner. No automatic audio, text dispatch, product action, or Unknown-action replay is performed.
+
+Evidence: dedicated Application 4/4 and Integration 3/3; related Application 571/571 and Integration 388/388; solution build 0 warnings/0 errors. T082 remains blocked by T034/T072/T074. T090 is the next dependency-ready P1 slice, but was not started in this round.

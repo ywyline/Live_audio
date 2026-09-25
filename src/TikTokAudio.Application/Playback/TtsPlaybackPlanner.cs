@@ -224,6 +224,20 @@ public sealed class TtsPlaybackPlanner : IBasePlaybackPlan
         }
     }
 
+    public PlaybackCheckpoint CaptureCheckpoint(AudioCursor sourceCursor)
+    {
+        lock (gate)
+        {
+            if (current is null) throw new InvalidOperationException("No playable script segment is selected.");
+            if (!ValidCursor(sourceCursor, current.Asset))
+                throw new ArgumentException("The source sample cursor is invalid.", nameof(sourceCursor));
+            cursor = new(sourceCursor.SourceSampleOffset, current.Asset.SampleRate);
+            return new PlaybackCheckpoint(current.Mode, Revision, current.ProductId, current.GroupId,
+                current.ClipId, cursor, current.Cycle, current.EffectSeed,
+                new HashSet<string>(consumed, StringComparer.Ordinal));
+        }
+    }
+
     public Task<OperationResult> RestoreCheckpointAsync(PlaybackCheckpoint checkpoint, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(checkpoint);
